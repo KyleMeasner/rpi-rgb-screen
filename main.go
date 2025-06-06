@@ -1,8 +1,12 @@
 package main
 
 import (
-	"image"
-	"image/color"
+	"os"
+	"os/signal"
+	"rpi-rgb-screen/screen"
+	"rpi-rgb-screen/transition"
+	"syscall"
+	"time"
 
 	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 )
@@ -20,22 +24,30 @@ func main() {
 		panic(err)
 	}
 
-	canvas := rgbmatrix.NewCanvas(matrix)
-	defer canvas.Close()
+	toolKit := rgbmatrix.NewToolKit(matrix)
+	defer toolKit.Close()
+	go clearScreenOnExit(toolKit.Canvas)
 
-	bounds := canvas.Bounds()
-	pixels := []image.Point{}
-	for x := bounds.Min.X; x < bounds.Max.X; x++ {
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			// fmt.Println("x", x, "y", y)
-			// canvas.Set(x, y, color.RGBA{255, 0, 0, 255})
+	screen1 := screen.NewDummyScreen()
+	for {
+		screen2 := screen.NewDummyScreen()
 
-			pixels = append(pixels, image.Point{x, y})
-			for _, point := range pixels {
-				canvas.Set(point.X, point.Y, color.RGBA{255, 0, 0, 255})
-			}
-
-			canvas.Render()
+		err = toolKit.PlayAnimation(transition.NewSlideIn(screen1, screen2))
+		if err != nil {
+			panic(err)
 		}
+		time.Sleep(5 * time.Second)
+		screen1 = screen2
 	}
+}
+
+func clearScreenOnExit(canvas *rgbmatrix.Canvas) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
+	<-signalChan
+
+	// Cleanup actions
+	canvas.Close()
+
+	os.Exit(0)
 }
