@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"os/signal"
+	"rpi-rgb-screen/constants"
+	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/screen"
 	"rpi-rgb-screen/transition"
 	"syscall"
@@ -13,8 +15,8 @@ import (
 
 func main() {
 	config := &rgbmatrix.DefaultConfig
-	config.Rows = 32
-	config.Cols = 64
+	config.Rows = constants.SCREEN_HEIGHT
+	config.Cols = constants.SCREEN_WIDTH
 	config.Brightness = 100
 	config.HardwareMapping = "adafruit-hat"
 	config.ShowRefreshRate = true
@@ -28,9 +30,11 @@ func main() {
 	defer toolKit.Close()
 	go clearScreenOnExit(toolKit.Canvas)
 
-	screen1 := screen.NewDummyScreen()
+	fontCache := fonts.LoadFonts()
+
+	screen1 := screen.NewDummyScreen(fontCache)
 	for {
-		screen2 := screen.NewDummyScreen()
+		screen2 := screen.NewDummyScreen(fontCache)
 
 		err = toolKit.PlayAnimation(transition.NewSlideIn(screen1, screen2))
 		if err != nil {

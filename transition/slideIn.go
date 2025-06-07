@@ -11,6 +11,7 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// This transition slides the new screen in from the right-hand side of the display
 type SlideIn struct {
 	ctx       *gg.Context
 	position  image.Point
