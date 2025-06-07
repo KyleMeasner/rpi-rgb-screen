@@ -12,26 +12,18 @@ import (
 
 // A dummy screen used to test drawing screens to the display
 type DummyScreen struct {
-	ctx   *gg.Context
-	color color.RGBA
-	font  font.Face
+	ctx          *gg.Context
+	color        color.RGBA
+	fonts        *fonts.Fonts
+	selectedFont font.Face
 }
 
 func NewDummyScreen(fonts *fonts.Fonts) Screen {
-	var fontFace font.Face
-	switch rand.Intn(3) {
-	case 0:
-		fontFace = fonts.Bitocra
-	case 1:
-		fontFace = fonts.Lemon
-	case 2:
-		fontFace = fonts.Scientifica
-	}
-
 	return &DummyScreen{
-		ctx:   gg.NewContext(64, 32),
-		color: color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
-		font:  fontFace,
+		ctx:          gg.NewContext(64, 32),
+		color:        color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
+		fonts:        fonts,
+		selectedFont: fonts.Scientifica,
 	}
 }
 
@@ -46,8 +38,23 @@ func (s *DummyScreen) Render() image.Image {
 		s.ctx.Fill()
 	}
 
-	s.ctx.SetFontFace(s.font)
+	s.ctx.SetFontFace(s.selectedFont)
 	s.ctx.DrawStringAnchored("Dummy Screen", 32, 14, 0.5, 0.5)
 
 	return s.ctx.Image()
+}
+
+func (s *DummyScreen) Refresh() {
+	// Change font
+	switch rand.Intn(3) {
+	case 0:
+		s.selectedFont = s.fonts.Bitocra
+	case 1:
+		s.selectedFont = s.fonts.Lemon
+	case 2:
+		s.selectedFont = s.fonts.Scientifica
+	}
+
+	// Change color
+	s.color = color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255}
 }

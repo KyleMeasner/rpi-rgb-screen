@@ -6,4 +6,5 @@ import (
 
 type Screen interface {
 	Render() image.Image
+	Refresh()
 }

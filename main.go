@@ -5,10 +5,8 @@ import (
 	"os/signal"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/fonts"
-	"rpi-rgb-screen/screen"
-	"rpi-rgb-screen/transition"
+	"rpi-rgb-screen/manager"
 	"syscall"
-	"time"
 
 	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 )
@@ -32,17 +30,8 @@ func main() {
 
 	fontCache := fonts.LoadFonts()
 
-	screen1 := screen.NewDummyScreen(fontCache)
-	for {
-		screen2 := screen.NewDummyScreen(fontCache)
-
-		err = toolKit.PlayAnimation(transition.NewSlideIn(screen1, screen2))
-		if err != nil {
-			panic(err)
-		}
-		time.Sleep(5 * time.Second)
-		screen1 = screen2
-	}
+	screenManager := manager.NewScreenManager(fontCache, toolKit)
+	screenManager.Run()
 }
 
 func clearScreenOnExit(canvas *rgbmatrix.Canvas) {
