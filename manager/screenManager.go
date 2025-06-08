@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/screen"
 	"rpi-rgb-screen/transition"
@@ -10,19 +11,25 @@ import (
 )
 
 type ScreenManager struct {
-	Screens []screen.Screen
-	ToolKit *rgbmatrix.ToolKit
+	Screens     []screen.Screen
+	ToolKit     *rgbmatrix.ToolKit
+	DataManager *data.DataManager
 }
 
-func NewScreenManager(fonts *fonts.Fonts, toolKit *rgbmatrix.ToolKit) *ScreenManager {
+func NewScreenManager(fonts *fonts.Fonts, toolKit *rgbmatrix.ToolKit, dataManager *data.DataManager) *ScreenManager {
 	screens := []screen.Screen{
-		screen.NewDummyScreen(fonts),
 		screen.NewDummyScreen(fonts),
 	}
 
+	events := dataManager.SportsData.GetUpcomingEvents()
+	for _, event := range events {
+		screens = append(screens, screen.NewSportsScoresScreen(fonts, dataManager.SportsData, event))
+	}
+
 	return &ScreenManager{
-		Screens: screens,
-		ToolKit: toolKit,
+		Screens:     screens,
+		ToolKit:     toolKit,
+		DataManager: dataManager,
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"rpi-rgb-screen/constants"
+	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/manager"
 	"syscall"
@@ -30,7 +31,8 @@ func main() {
 
 	fontCache := fonts.LoadFonts()
 
-	screenManager := manager.NewScreenManager(fontCache, toolKit)
+	dataManager := data.NewDataManager()
+	screenManager := manager.NewScreenManager(fontCache, toolKit, dataManager)
 	screenManager.Run()
 }
 
