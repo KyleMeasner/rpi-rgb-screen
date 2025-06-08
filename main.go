@@ -23,10 +23,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	go clearScreenOnExit(matrix)
 
 	toolKit := rgbmatrix.NewToolKit(matrix)
 	defer toolKit.Close()
-	go clearScreenOnExit(toolKit.Canvas)
 
 	fontCache := fonts.LoadFonts()
 
@@ -34,13 +34,13 @@ func main() {
 	screenManager.Run()
 }
 
-func clearScreenOnExit(canvas *rgbmatrix.Canvas) {
+func clearScreenOnExit(matrix rgbmatrix.Matrix) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
 	<-signalChan
 
 	// Cleanup actions
-	canvas.Close()
+	matrix.Close()
 
 	os.Exit(0)
 }
