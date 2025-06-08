@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"math/rand"
+	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/fonts"
 
 	"github.com/fogleman/gg"
@@ -20,7 +21,7 @@ type DummyScreen struct {
 
 func NewDummyScreen(fonts *fonts.Fonts) Screen {
 	return &DummyScreen{
-		ctx:          gg.NewContext(64, 32),
+		ctx:          gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
 		color:        color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
 		fonts:        fonts,
 		selectedFont: fonts.Scientifica,
