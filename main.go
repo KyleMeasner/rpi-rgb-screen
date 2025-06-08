@@ -16,7 +16,7 @@ func main() {
 	config.Rows = constants.SCREEN_HEIGHT
 	config.Cols = constants.SCREEN_WIDTH
 	config.Brightness = 100
-	config.HardwareMapping = "adafruit-hat"
+	config.HardwareMapping = "adafruit-hat-pwm"
 	config.ShowRefreshRate = true
 
 	matrix, err := rgbmatrix.NewRGBLedMatrix(config)
