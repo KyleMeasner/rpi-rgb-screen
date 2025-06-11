@@ -39,15 +39,19 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 }
 
 func (s *ScreenManager) Run() {
+	// Prep the first screen before we start the loop
+	<-s.Screens[0].Refresh()
+	s.Screens[0].TransitionEnd(true)
+
 	i := 0
 	for {
 		currScreen := s.Screens[i]
-		currScreen.Refresh()
-		s.DisplayScreen(currScreen)
 
 		i = (i + 1) % len(s.Screens)
 		nextScreen := s.Screens[i]
-		nextScreen.Refresh()
+		nextScreenReadyChan := nextScreen.Refresh()
+
+		s.DisplayScreen(currScreen, nextScreenReadyChan)
 
 		currScreen.TransitionStart()
 		nextScreen.TransitionStart()
@@ -59,14 +63,21 @@ func (s *ScreenManager) Run() {
 	}
 }
 
-func (s *ScreenManager) DisplayScreen(screen screen.Screen) {
-	lastRenderTime := time.Now()
+func (s *ScreenManager) DisplayScreen(screen screen.Screen, nextScreenReadyChan <-chan bool) {
+	nextScreenReady := false
+	currScreenDone := false
+	go func() {
+		<-nextScreenReadyChan
+		nextScreenReady = true
+	}()
 
-	for start := time.Now(); time.Since(start) < screenDuration; {
+	lastRenderTime := time.Now()
+	var renderedScreen image.Image
+	for !currScreenDone || !nextScreenReady {
 		renderTime := time.Now()
 		timeDiff := renderTime.Sub(lastRenderTime)
 
-		renderedScreen := screen.Render(timeDiff)
+		renderedScreen, currScreenDone = screen.Render(timeDiff)
 		draw.Draw(s.Canvas, s.Canvas.Bounds(), renderedScreen, image.Point{}, draw.Over)
 		s.Canvas.Render()
 
@@ -75,12 +86,14 @@ func (s *ScreenManager) DisplayScreen(screen screen.Screen) {
 }
 
 func (s *ScreenManager) DisplayTransition(transition transition.Transition) {
+	var renderedTransition image.Image
+	transitionDone := false
 	lastRenderTime := time.Now()
-	for start := time.Now(); time.Since(start) < transitionDuration; {
+	for !transitionDone {
 		renderTime := time.Now()
 		timeDiff := renderTime.Sub(lastRenderTime)
 
-		renderedTransition := transition.Render(timeDiff)
+		renderedTransition, transitionDone = transition.Render(timeDiff)
 		draw.Draw(s.Canvas, s.Canvas.Bounds(), renderedTransition, image.Point{}, draw.Over)
 		s.Canvas.Render()
 

@@ -6,8 +6,8 @@ import (
 )
 
 type Screen interface {
-	Render(elapsed time.Duration) image.Image
-	Refresh()
+	Render(elapsed time.Duration) (image.Image, bool)
+	Refresh() chan bool
 	TransitionStart()
 	TransitionEnd(isDisplayed bool)
 }

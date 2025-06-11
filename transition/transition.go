@@ -6,5 +6,5 @@ import (
 )
 
 type Transition interface {
-	Render(elapsed time.Duration) image.Image
+	Render(elapsed time.Duration) (image.Image, bool)
 }

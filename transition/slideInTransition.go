@@ -29,18 +29,18 @@ func NewSlideInTransition(oldScreen, newScreen screen.Screen) Transition {
 	}
 }
 
-func (s *SlideInTransition) Render(elapsed time.Duration) image.Image {
+func (s *SlideInTransition) Render(elapsed time.Duration) (image.Image, bool) {
 	s.AnimationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
 	if s.AnimationPercent >= 1 {
 		s.AnimationPercent = 1
 	}
 
-	renderedOldScreen := s.OldScreen.Render(elapsed)
-	renderedNewScreen := s.NewScreen.Render(elapsed)
+	renderedOldScreen, _ := s.OldScreen.Render(elapsed)
+	renderedNewScreen, _ := s.NewScreen.Render(elapsed)
 
 	offset := int(constants.SCREEN_WIDTH * s.AnimationPercent)
 
 	s.Ctx.DrawImage(renderedOldScreen, -offset, 0)
 	s.Ctx.DrawImage(renderedNewScreen, constants.SCREEN_WIDTH-offset, 0)
-	return s.Ctx.Image()
+	return s.Ctx.Image(), s.AnimationPercent == 1
 }
