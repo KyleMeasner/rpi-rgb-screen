@@ -2,9 +2,12 @@ package screen
 
 import (
 	"image"
+	"time"
 )
 
 type Screen interface {
-	Render() image.Image
+	Render(elapsed time.Duration) image.Image
 	Refresh()
+	TransitionStart()
+	TransitionEnd(isDisplayed bool)
 }

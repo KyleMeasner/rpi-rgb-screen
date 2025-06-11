@@ -2,24 +2,25 @@ package transition
 
 import (
 	"image"
-	"io"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/screen"
 	"time"
 
-	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 	"github.com/fogleman/gg"
 )
 
+const animationDuration = 3 * time.Second
+
 // This transition slides the new screen in from the right-hand side of the display
 type SlideIn struct {
-	ctx       *gg.Context
-	position  image.Point
-	oldScreen screen.Screen
-	newScreen screen.Screen
+	ctx              *gg.Context
+	position         image.Point
+	oldScreen        screen.Screen
+	newScreen        screen.Screen
+	animationPercent float64
 }
 
-func NewSlideIn(oldScreen, newScreen screen.Screen) rgbmatrix.Animation {
+func NewSlideIn(oldScreen, newScreen screen.Screen) Transition {
 	return &SlideIn{
 		ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
 		position:  image.Pt(constants.SCREEN_WIDTH, 0),
@@ -28,18 +29,18 @@ func NewSlideIn(oldScreen, newScreen screen.Screen) rgbmatrix.Animation {
 	}
 }
 
-func (s *SlideIn) Next() (image.Image, <-chan time.Time, error) {
-	s.position = s.position.Sub(image.Pt(1, 0))
-
-	if s.position.X < 0 {
-		// Animation is done
-		return &image.NRGBA{}, make(<-chan time.Time), io.EOF
+func (s *SlideIn) Render(elapsed time.Duration) image.Image {
+	s.animationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
+	if s.animationPercent >= 1 {
+		s.animationPercent = 1
 	}
 
-	renderedOldScreen := s.oldScreen.Render()
-	renderedNewScreen := s.newScreen.Render()
+	renderedOldScreen := s.oldScreen.Render(elapsed)
+	renderedNewScreen := s.newScreen.Render(elapsed)
 
-	s.ctx.DrawImage(renderedOldScreen, s.position.X-64, s.position.Y)
-	s.ctx.DrawImage(renderedNewScreen, s.position.X, s.position.Y)
-	return s.ctx.Image(), time.After(time.Millisecond * 50), nil
+	offset := int(constants.SCREEN_WIDTH * s.animationPercent)
+
+	s.ctx.DrawImage(renderedOldScreen, -offset, 0)
+	s.ctx.DrawImage(renderedNewScreen, constants.SCREEN_WIDTH-offset, 0)
+	return s.ctx.Image()
 }

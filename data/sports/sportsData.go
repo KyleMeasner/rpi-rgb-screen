@@ -2,7 +2,6 @@ package sports
 
 import (
 	"image"
-	"rpi-rgb-screen/utils"
 )
 
 const LEAGE_CFL = 4405
@@ -83,7 +82,6 @@ func (s *SportsDataManager) GetLogo(teamName string) image.Image {
 		return nil
 	}
 
-	resizedLogo := utils.ResizeImage(logo, 16)
-	s.Logos[teamName] = resizedLogo
-	return resizedLogo
+	s.Logos[teamName] = logo
+	return logo
 }

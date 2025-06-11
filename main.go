@@ -26,13 +26,13 @@ func main() {
 	}
 	go clearScreenOnExit(matrix)
 
-	toolKit := rgbmatrix.NewToolKit(matrix)
-	defer toolKit.Close()
+	canvas := rgbmatrix.NewCanvas(matrix)
+	defer canvas.Close()
 
 	fontCache := fonts.LoadFonts()
 
 	dataManager := data.NewDataManager()
-	screenManager := manager.NewScreenManager(fontCache, toolKit, dataManager)
+	screenManager := manager.NewScreenManager(fontCache, canvas, dataManager)
 	screenManager.Run()
 }
 

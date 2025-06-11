@@ -1,6 +1,8 @@
 package manager
 
 import (
+	"image"
+	"image/draw"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/screen"
@@ -10,13 +12,16 @@ import (
 	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 )
 
+const screenDuration = 10 * time.Second
+const transitionDuration = 3 * time.Second
+
 type ScreenManager struct {
 	Screens     []screen.Screen
-	ToolKit     *rgbmatrix.ToolKit
+	Canvas      *rgbmatrix.Canvas
 	DataManager *data.DataManager
 }
 
-func NewScreenManager(fonts *fonts.Fonts, toolKit *rgbmatrix.ToolKit, dataManager *data.DataManager) *ScreenManager {
+func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager *data.DataManager) *ScreenManager {
 	screens := []screen.Screen{
 		screen.NewDummyScreen(fonts),
 	}
@@ -28,28 +33,57 @@ func NewScreenManager(fonts *fonts.Fonts, toolKit *rgbmatrix.ToolKit, dataManage
 
 	return &ScreenManager{
 		Screens:     screens,
-		ToolKit:     toolKit,
+		Canvas:      canvas,
 		DataManager: dataManager,
 	}
 }
 
 func (s *ScreenManager) Run() {
 	i := 0
-	currScreen := s.Screens[i]
-	s.ToolKit.PlayImage(currScreen.Render(), 0)
-
 	for {
-		time.Sleep(5 * time.Second)
+		currScreen := s.Screens[i]
+		currScreen.Refresh()
+		s.DisplayScreen(currScreen)
 
 		i = (i + 1) % len(s.Screens)
 		nextScreen := s.Screens[i]
 		nextScreen.Refresh()
 
-		err := s.ToolKit.PlayAnimation(transition.NewSlideIn(currScreen, nextScreen))
-		if err != nil {
-			panic(err)
-		}
+		currScreen.TransitionStart()
+		nextScreen.TransitionStart()
 
-		currScreen = nextScreen
+		s.DisplayTransition(transition.NewSlideIn(currScreen, nextScreen))
+
+		currScreen.TransitionEnd(false)
+		nextScreen.TransitionEnd(true)
+	}
+}
+
+func (s *ScreenManager) DisplayScreen(screen screen.Screen) {
+	lastRenderTime := time.Now()
+
+	for start := time.Now(); time.Since(start) < screenDuration; {
+		renderTime := time.Now()
+		timeDiff := renderTime.Sub(lastRenderTime)
+
+		renderedScreen := screen.Render(timeDiff)
+		draw.Draw(s.Canvas, s.Canvas.Bounds(), renderedScreen, image.Point{}, draw.Over)
+		s.Canvas.Render()
+
+		lastRenderTime = renderTime
+	}
+}
+
+func (s *ScreenManager) DisplayTransition(transition transition.Transition) {
+	lastRenderTime := time.Now()
+	for start := time.Now(); time.Since(start) < transitionDuration; {
+		renderTime := time.Now()
+		timeDiff := renderTime.Sub(lastRenderTime)
+
+		renderedTransition := transition.Render(timeDiff)
+		draw.Draw(s.Canvas, s.Canvas.Bounds(), renderedTransition, image.Point{}, draw.Over)
+		s.Canvas.Render()
+
+		lastRenderTime = renderTime
 	}
 }

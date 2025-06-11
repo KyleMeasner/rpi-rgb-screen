@@ -7,24 +7,24 @@ import (
 	"golang.org/x/image/font"
 )
 
-const fontDirectory = "/home/kyle/repos/bitmap-fonts/bitmap/"
+const fontsFolder = "./resources/fonts/"
 
 type Fonts struct {
-	Bitocra     font.Face
-	Lemon       font.Face
-	Scientifica font.Face
+	Size5x7   font.Face
+	Size6x10  font.Face
+	Size8x13B font.Face
 }
 
 func LoadFonts() *Fonts {
 	return &Fonts{
-		Bitocra:     loadFont("bitocra/bitocra7.bdf"),
-		Lemon:       loadFont("phallus/lemon.bdf"),
-		Scientifica: loadFont("scientifica/scientifica-11.bdf"),
+		Size5x7:   loadFont("5x7.bdf"),
+		Size6x10:  loadFont("6x10.bdf"),
+		Size8x13B: loadFont("8x13B.bdf"),
 	}
 }
 
-func loadFont(fontLocation string) font.Face {
-	fontFile, err := os.ReadFile(fontDirectory + fontLocation)
+func loadFont(fileName string) font.Face {
+	fontFile, err := os.ReadFile(fontsFolder + fileName)
 	if err != nil {
 		panic(err)
 	}
