@@ -52,7 +52,7 @@ func (s *ScreenManager) Run() {
 		currScreen.TransitionStart()
 		nextScreen.TransitionStart()
 
-		s.DisplayTransition(transition.NewSlideIn(currScreen, nextScreen))
+		s.DisplayTransition(transition.NewSlideInTransition(currScreen, nextScreen))
 
 		currScreen.TransitionEnd(false)
 		nextScreen.TransitionEnd(true)

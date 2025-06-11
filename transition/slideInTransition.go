@@ -12,7 +12,7 @@ import (
 const animationDuration = 3 * time.Second
 
 // This transition slides the new screen in from the right-hand side of the display
-type SlideIn struct {
+type SlideInTransition struct {
 	ctx              *gg.Context
 	position         image.Point
 	oldScreen        screen.Screen
@@ -20,8 +20,8 @@ type SlideIn struct {
 	animationPercent float64
 }
 
-func NewSlideIn(oldScreen, newScreen screen.Screen) Transition {
-	return &SlideIn{
+func NewSlideInTransition(oldScreen, newScreen screen.Screen) Transition {
+	return &SlideInTransition{
 		ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
 		position:  image.Pt(constants.SCREEN_WIDTH, 0),
 		oldScreen: oldScreen,
@@ -29,7 +29,7 @@ func NewSlideIn(oldScreen, newScreen screen.Screen) Transition {
 	}
 }
 
-func (s *SlideIn) Render(elapsed time.Duration) image.Image {
+func (s *SlideInTransition) Render(elapsed time.Duration) image.Image {
 	s.animationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
 	if s.animationPercent >= 1 {
 		s.animationPercent = 1
