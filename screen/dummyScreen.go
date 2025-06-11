@@ -18,65 +18,65 @@ const textLowerBound = 10
 
 // A dummy screen used to test drawing screens to the display
 type DummyScreen struct {
-	ctx           *gg.Context
-	color         color.RGBA
-	fonts         *fonts.Fonts
-	selectedFont  font.Face
-	textYPosition float64
-	textDirection int
+	Ctx           *gg.Context
+	Color         color.RGBA
+	Fonts         *fonts.Fonts
+	SelectedFont  font.Face
+	TextYPosition float64
+	TextDirection int
 }
 
 func NewDummyScreen(fonts *fonts.Fonts) Screen {
 	return &DummyScreen{
-		ctx:           gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		color:         color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
-		fonts:         fonts,
-		selectedFont:  fonts.Size5x7,
-		textYPosition: textUpperBound,
-		textDirection: 1,
+		Ctx:           gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
+		Color:         color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
+		Fonts:         fonts,
+		SelectedFont:  fonts.Size5x7,
+		TextYPosition: textUpperBound,
+		TextDirection: 1,
 	}
 }
 
 func (s *DummyScreen) Render(elapsed time.Duration) image.Image {
-	s.ctx.SetColor(color.Black)
-	s.ctx.Clear()
+	s.Ctx.SetColor(color.Black)
+	s.Ctx.Clear()
 
 	positions := []image.Point{image.Pt(0, 0), image.Pt(0, 32), image.Pt(64, 0), image.Pt(64, 32)}
 	for _, position := range positions {
-		s.ctx.DrawCircle(float64(position.X), float64(position.Y), 5)
-		s.ctx.SetColor(s.color)
-		s.ctx.Fill()
+		s.Ctx.DrawCircle(float64(position.X), float64(position.Y), 5)
+		s.Ctx.SetColor(s.Color)
+		s.Ctx.Fill()
 	}
 
-	s.textYPosition += speed * elapsed.Seconds() * float64(s.textDirection)
-	if s.textYPosition >= textLowerBound {
-		s.textYPosition = textLowerBound
-		s.textDirection = -1
-	} else if s.textYPosition <= textUpperBound {
-		s.textYPosition = textUpperBound
-		s.textDirection = 1
+	s.TextYPosition += speed * elapsed.Seconds() * float64(s.TextDirection)
+	if s.TextYPosition >= textLowerBound {
+		s.TextYPosition = textLowerBound
+		s.TextDirection = -1
+	} else if s.TextYPosition <= textUpperBound {
+		s.TextYPosition = textUpperBound
+		s.TextDirection = 1
 	}
 
-	s.ctx.SetFontFace(s.selectedFont)
-	s.ctx.DrawStringAnchored("Dummy", 32, s.textYPosition, 0.5, 0.5)
-	s.ctx.DrawStringAnchored("Screen", 32, s.textYPosition+13, 0.5, 0.5)
+	s.Ctx.SetFontFace(s.SelectedFont)
+	s.Ctx.DrawStringAnchored("Dummy", 32, s.TextYPosition, 0.5, 0.5)
+	s.Ctx.DrawStringAnchored("Screen", 32, s.TextYPosition+13, 0.5, 0.5)
 
-	return s.ctx.Image()
+	return s.Ctx.Image()
 }
 
 func (s *DummyScreen) Refresh() {
 	// Change font
 	switch rand.Intn(3) {
 	case 0:
-		s.selectedFont = s.fonts.Size5x7
+		s.SelectedFont = s.Fonts.Size5x7
 	case 1:
-		s.selectedFont = s.fonts.Size6x10
+		s.SelectedFont = s.Fonts.Size6x10
 	case 2:
-		s.selectedFont = s.fonts.Size8x13B
+		s.SelectedFont = s.Fonts.Size8x13B
 	}
 
 	// Change color
-	s.color = color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255}
+	s.Color = color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255}
 }
 
 func (s *DummyScreen) TransitionStart() {

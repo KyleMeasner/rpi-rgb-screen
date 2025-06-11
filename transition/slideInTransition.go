@@ -13,34 +13,34 @@ const animationDuration = 3 * time.Second
 
 // This transition slides the new screen in from the right-hand side of the display
 type SlideInTransition struct {
-	ctx              *gg.Context
-	position         image.Point
-	oldScreen        screen.Screen
-	newScreen        screen.Screen
-	animationPercent float64
+	Ctx              *gg.Context
+	Position         image.Point
+	OldScreen        screen.Screen
+	NewScreen        screen.Screen
+	AnimationPercent float64
 }
 
 func NewSlideInTransition(oldScreen, newScreen screen.Screen) Transition {
 	return &SlideInTransition{
-		ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		position:  image.Pt(constants.SCREEN_WIDTH, 0),
-		oldScreen: oldScreen,
-		newScreen: newScreen,
+		Ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
+		Position:  image.Pt(constants.SCREEN_WIDTH, 0),
+		OldScreen: oldScreen,
+		NewScreen: newScreen,
 	}
 }
 
 func (s *SlideInTransition) Render(elapsed time.Duration) image.Image {
-	s.animationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
-	if s.animationPercent >= 1 {
-		s.animationPercent = 1
+	s.AnimationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
+	if s.AnimationPercent >= 1 {
+		s.AnimationPercent = 1
 	}
 
-	renderedOldScreen := s.oldScreen.Render(elapsed)
-	renderedNewScreen := s.newScreen.Render(elapsed)
+	renderedOldScreen := s.OldScreen.Render(elapsed)
+	renderedNewScreen := s.NewScreen.Render(elapsed)
 
-	offset := int(constants.SCREEN_WIDTH * s.animationPercent)
+	offset := int(constants.SCREEN_WIDTH * s.AnimationPercent)
 
-	s.ctx.DrawImage(renderedOldScreen, -offset, 0)
-	s.ctx.DrawImage(renderedNewScreen, constants.SCREEN_WIDTH-offset, 0)
-	return s.ctx.Image()
+	s.Ctx.DrawImage(renderedOldScreen, -offset, 0)
+	s.Ctx.DrawImage(renderedNewScreen, constants.SCREEN_WIDTH-offset, 0)
+	return s.Ctx.Image()
 }

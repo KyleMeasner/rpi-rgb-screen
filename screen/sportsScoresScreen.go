@@ -17,103 +17,103 @@ import (
 const animationDuration = 3 * time.Second
 
 type SportsScoresScreen struct {
-	ctx              *gg.Context
-	fonts            *fonts.Fonts
-	sportsData       sports.SportsData
-	event            sports.Event
-	logo1            image.Image
-	logo2            image.Image
-	team1            *sports.Team
-	team2            *sports.Team
-	animationDone    bool
-	animationPercent float64
-	transitionDone   bool
+	Ctx              *gg.Context
+	Fonts            *fonts.Fonts
+	SportsData       sports.SportsData
+	Event            sports.Event
+	Logo1            image.Image
+	Logo2            image.Image
+	Team1            *sports.Team
+	Team2            *sports.Team
+	AnimationDone    bool
+	AnimationPercent float64
+	TransitionDone   bool
 }
 
 func NewSportsScoresScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event sports.Event) Screen {
 	return &SportsScoresScreen{
-		ctx:        gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		fonts:      fonts,
-		sportsData: sportsData,
-		event:      event,
+		Ctx:        gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
+		Fonts:      fonts,
+		SportsData: sportsData,
+		Event:      event,
 	}
 }
 
 func (s *SportsScoresScreen) Refresh() {
-	if s.logo1 == nil {
-		s.logo1 = s.sportsData.GetLogo(s.event.HomeTeamName)
+	if s.Logo1 == nil {
+		s.Logo1 = s.SportsData.GetLogo(s.Event.HomeTeamName)
 	}
-	if s.logo2 == nil {
-		s.logo2 = s.sportsData.GetLogo(s.event.AwayTeamName)
+	if s.Logo2 == nil {
+		s.Logo2 = s.SportsData.GetLogo(s.Event.AwayTeamName)
 	}
 
-	if s.team1 == nil {
-		s.team1 = s.sportsData.GetTeam(s.event.HomeTeamName)
+	if s.Team1 == nil {
+		s.Team1 = s.SportsData.GetTeam(s.Event.HomeTeamName)
 	}
-	if s.team2 == nil {
-		s.team2 = s.sportsData.GetTeam(s.event.AwayTeamName)
+	if s.Team2 == nil {
+		s.Team2 = s.SportsData.GetTeam(s.Event.AwayTeamName)
 	}
 }
 
 func (s *SportsScoresScreen) Render(elapsed time.Duration) image.Image {
-	s.ctx.Identity()
-	s.ctx.SetColor(color.Black)
-	s.ctx.Clear()
+	s.Ctx.Identity()
+	s.Ctx.SetColor(color.Black)
+	s.Ctx.Clear()
 
-	if !s.animationDone {
-		if s.transitionDone {
+	if !s.AnimationDone {
+		if s.TransitionDone {
 			return s.renderAnimation(elapsed)
 		}
 		return s.renderAnimation(0)
 	}
 
-	if s.logo1 != nil {
-		resizedLogo1 := utils.ResizeImage(s.logo1, 32)
-		s.ctx.DrawImageAnchored(resizedLogo1, -16, 0, 0, 0)
+	if s.Logo1 != nil {
+		resizedLogo1 := utils.ResizeImage(s.Logo1, 32)
+		s.Ctx.DrawImageAnchored(resizedLogo1, -16, 0, 0, 0)
 	}
-	if s.logo2 != nil {
-		resizedLogo2 := utils.ResizeImage(s.logo2, 32)
-		s.ctx.DrawImageAnchored(resizedLogo2, 64+16, 0, 1, 0)
+	if s.Logo2 != nil {
+		resizedLogo2 := utils.ResizeImage(s.Logo2, 32)
+		s.Ctx.DrawImageAnchored(resizedLogo2, 64+16, 0, 1, 0)
 	}
 
-	eventTime, err := time.Parse("2006-01-02T15:04:05", s.event.Timestamp)
+	eventTime, err := time.Parse("2006-01-02T15:04:05", s.Event.Timestamp)
 	if err == nil {
 		eventTime = eventTime.Local()
 
-		s.ctx.SetFontFace(s.fonts.Size5x7)
-		s.ctx.SetColor(color.White)
-		s.ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Mon")), 32, 1, 0.5, 1)
-		s.ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Jan 2")), 32, 8, 0.5, 1)
-		s.ctx.DrawStringAnchored(eventTime.Format("3:04"), 32, 15, 0.5, 1)
-		s.ctx.DrawStringAnchored(eventTime.Format("PM"), 32, 22, 0.5, 1)
+		s.Ctx.SetFontFace(s.Fonts.Size5x7)
+		s.Ctx.SetColor(color.White)
+		s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Mon")), 32, 1, 0.5, 1)
+		s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Jan 2")), 32, 8, 0.5, 1)
+		s.Ctx.DrawStringAnchored(eventTime.Format("3:04"), 32, 15, 0.5, 1)
+		s.Ctx.DrawStringAnchored(eventTime.Format("PM"), 32, 22, 0.5, 1)
 	} else {
-		log.Printf("Error reading event time from timestamp '%s'.", s.event.Timestamp)
+		log.Printf("Error reading event time from timestamp '%s'.", s.Event.Timestamp)
 	}
 
-	return s.ctx.Image()
+	return s.Ctx.Image()
 }
 
 func (s *SportsScoresScreen) renderAnimation(elapsed time.Duration) image.Image {
-	s.animationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
-	if s.animationPercent >= 1 {
-		s.animationPercent = 1
-		s.animationDone = true
+	s.AnimationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
+	if s.AnimationPercent >= 1 {
+		s.AnimationPercent = 1
+		s.AnimationDone = true
 	}
 
-	x1 := 16 - int(32*s.animationPercent)
-	x2 := 48 + int(32*s.animationPercent)
+	x1 := 16 - int(32*s.AnimationPercent)
+	x2 := 48 + int(32*s.AnimationPercent)
 
 	// Draw the away team logo first so it is underneath the home logo
-	if s.logo2 != nil {
-		resizedLogo2 := utils.ResizeImage(s.logo2, 32)
-		s.ctx.DrawImageAnchored(resizedLogo2, x2, 0, 1, 0)
+	if s.Logo2 != nil {
+		resizedLogo2 := utils.ResizeImage(s.Logo2, 32)
+		s.Ctx.DrawImageAnchored(resizedLogo2, x2, 0, 1, 0)
 	}
-	if s.logo1 != nil {
-		resizedLogo1 := utils.ResizeImage(s.logo1, 32)
-		s.ctx.DrawImageAnchored(resizedLogo1, x1, 0, 0, 0)
+	if s.Logo1 != nil {
+		resizedLogo1 := utils.ResizeImage(s.Logo1, 32)
+		s.Ctx.DrawImageAnchored(resizedLogo1, x1, 0, 0, 0)
 	}
 
-	return s.ctx.Image()
+	return s.Ctx.Image()
 }
 
 func (s *SportsScoresScreen) TransitionStart() {
@@ -121,5 +121,5 @@ func (s *SportsScoresScreen) TransitionStart() {
 }
 
 func (s *SportsScoresScreen) TransitionEnd(isDisplayed bool) {
-	s.transitionDone = true
+	s.TransitionDone = true
 }
