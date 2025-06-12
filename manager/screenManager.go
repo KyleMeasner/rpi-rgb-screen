@@ -12,9 +12,6 @@ import (
 	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 )
 
-const screenDuration = 10 * time.Second
-const transitionDuration = 3 * time.Second
-
 type ScreenManager struct {
 	Screens     []screen.Screen
 	Canvas      *rgbmatrix.Canvas
@@ -28,7 +25,7 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 
 	events := dataManager.SportsData.GetUpcomingEvents()
 	for _, event := range events {
-		screens = append(screens, screen.NewSportsScoresScreen(fonts, dataManager.SportsData, event))
+		screens = append(screens, screen.NewSportsUpcomingGamesScreen(fonts, dataManager.SportsData, event))
 	}
 
 	return &ScreenManager{

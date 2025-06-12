@@ -17,7 +17,7 @@ import (
 const animationDuration = 2 * time.Second
 const sportsScreenDuration = 5 * time.Second
 
-type SportsScoresScreen struct {
+type SportsUpcomingGamesScreen struct {
 	Ctx                 *gg.Context
 	Fonts               *fonts.Fonts
 	SportsData          sports.SportsData
@@ -32,8 +32,8 @@ type SportsScoresScreen struct {
 	ScreenDisplayedTime time.Time
 }
 
-func NewSportsScoresScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event sports.Event) Screen {
-	return &SportsScoresScreen{
+func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event sports.Event) Screen {
+	return &SportsUpcomingGamesScreen{
 		Ctx:                 gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
 		Fonts:               fonts,
 		SportsData:          sportsData,
@@ -42,7 +42,7 @@ func NewSportsScoresScreen(fonts *fonts.Fonts, sportsData sports.SportsData, eve
 	}
 }
 
-func (s *SportsScoresScreen) Refresh() chan bool {
+func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 	doneChan := make(chan bool)
 
 	go func() {
@@ -70,7 +70,7 @@ func (s *SportsScoresScreen) Refresh() chan bool {
 	return doneChan
 }
 
-func (s *SportsScoresScreen) Render(elapsed time.Duration) (image.Image, bool) {
+func (s *SportsUpcomingGamesScreen) Render(elapsed time.Duration) (image.Image, bool) {
 	s.Ctx.Identity()
 	s.Ctx.SetColor(color.Black)
 	s.Ctx.Clear()
@@ -108,7 +108,7 @@ func (s *SportsScoresScreen) Render(elapsed time.Duration) (image.Image, bool) {
 	return s.Ctx.Image(), time.Now().Sub(s.ScreenDisplayedTime) > sportsScreenDuration
 }
 
-func (s *SportsScoresScreen) renderAnimation(elapsed time.Duration) (image.Image, bool) {
+func (s *SportsUpcomingGamesScreen) renderAnimation(elapsed time.Duration) (image.Image, bool) {
 	s.AnimationPercent += float64(elapsed.Milliseconds()) / float64(animationDuration.Milliseconds())
 	if s.AnimationPercent >= 1 {
 		s.AnimationPercent = 1
@@ -131,11 +131,11 @@ func (s *SportsScoresScreen) renderAnimation(elapsed time.Duration) (image.Image
 	return s.Ctx.Image(), time.Now().Sub(s.ScreenDisplayedTime) > sportsScreenDuration
 }
 
-func (s *SportsScoresScreen) TransitionStart() {
+func (s *SportsUpcomingGamesScreen) TransitionStart() {
 	// Nothing to do here
 }
 
-func (s *SportsScoresScreen) TransitionEnd(isDisplayed bool) {
+func (s *SportsUpcomingGamesScreen) TransitionEnd(isDisplayed bool) {
 	if isDisplayed {
 		s.TransitionDone = true
 		s.ScreenDisplayedTime = time.Now()
