@@ -64,7 +64,7 @@ func (s *DummyScreen) Render(elapsed time.Duration) (image.Image, bool) {
 	s.Ctx.DrawStringAnchored("DUMMY", 32, s.TextYPosition, 0.5, 0.5)
 	s.Ctx.DrawStringAnchored("SCREEN", 32, s.TextYPosition+13, 0.5, 0.5)
 
-	return s.Ctx.Image(), time.Now().Sub(s.ScreenDisplayedTime) > screenDuration
+	return s.Ctx.Image(), time.Since(s.ScreenDisplayedTime) > screenDuration
 }
 
 func (s *DummyScreen) Refresh() chan bool {
