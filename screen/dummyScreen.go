@@ -19,6 +19,7 @@ const screenDuration = 3 * time.Second
 
 // A dummy screen used to test drawing screens to the display
 type DummyScreen struct {
+	State               ScreenState
 	Ctx                 *gg.Context
 	Color               color.RGBA
 	Fonts               *fonts.Fonts
@@ -30,6 +31,7 @@ type DummyScreen struct {
 
 func NewDummyScreen(fonts *fonts.Fonts) Screen {
 	return &DummyScreen{
+		State:               StateNotDisplayed,
 		Ctx:                 gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
 		Color:               color.RGBA{uint8(rand.Intn(256)), uint8(rand.Intn(256)), uint8(rand.Intn(256)), 255},
 		Fonts:               fonts,
@@ -37,6 +39,13 @@ func NewDummyScreen(fonts *fonts.Fonts) Screen {
 		TextYPosition:       textUpperBound,
 		TextDirection:       1,
 		ScreenDisplayedTime: time.Now(),
+	}
+}
+
+func (s *DummyScreen) SetState(state ScreenState) {
+	s.State = state
+	if state == StateDisplayed {
+		s.ScreenDisplayedTime = time.Now()
 	}
 }
 
@@ -90,14 +99,4 @@ func (s *DummyScreen) Refresh() chan bool {
 	}()
 
 	return doneChan
-}
-
-func (s *DummyScreen) TransitionStart() {
-
-}
-
-func (s *DummyScreen) TransitionEnd(isDisplayed bool) {
-	if isDisplayed {
-		s.ScreenDisplayedTime = time.Now()
-	}
 }

@@ -38,7 +38,6 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 func (s *ScreenManager) Run() {
 	// Prep the first screen before we start the loop
 	<-s.Screens[0].Refresh()
-	s.Screens[0].TransitionEnd(true)
 
 	i := 0
 	for {
@@ -48,15 +47,14 @@ func (s *ScreenManager) Run() {
 		nextScreen := s.Screens[i]
 		nextScreenReadyChan := nextScreen.Refresh()
 
+		currScreen.SetState(screen.StateDisplayed)
 		s.DisplayScreen(currScreen, nextScreenReadyChan)
 
-		currScreen.TransitionStart()
-		nextScreen.TransitionStart()
-
+		currScreen.SetState(screen.StateTransitionOut)
+		nextScreen.SetState(screen.StateTransitionIn)
 		s.DisplayTransition(transition.NewSlideInTransition(currScreen, nextScreen))
 
-		currScreen.TransitionEnd(false)
-		nextScreen.TransitionEnd(true)
+		currScreen.SetState(screen.StateNotDisplayed)
 	}
 }
 

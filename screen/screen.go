@@ -5,9 +5,17 @@ import (
 	"time"
 )
 
+type ScreenState int
+
+const (
+	StateNotDisplayed ScreenState = iota
+	StateTransitionIn
+	StateDisplayed
+	StateTransitionOut
+)
+
 type Screen interface {
 	Render(elapsed time.Duration) (image.Image, bool)
 	Refresh() chan bool
-	TransitionStart()
-	TransitionEnd(isDisplayed bool)
+	SetState(state ScreenState)
 }
