@@ -16,10 +16,9 @@ import (
 )
 
 type SportsUpcomingGamesScreen struct {
-	State          ScreenState
-	ScreenDuration time.Duration
-	Ctx            *gg.Context
-	Fonts          *fonts.Fonts
+	State ScreenState
+	Ctx   *gg.Context
+	Fonts *fonts.Fonts
 
 	// Data
 	SportsData sports.SportsData
@@ -30,42 +29,47 @@ type SportsUpcomingGamesScreen struct {
 	Team2      *sports.Team
 
 	// Animation state
-	LogoAnimation *animation.Animation
-	TextAnimation *animation.Animation
-	KeyFrames     *animation.KeyFrames
+	KeyFrames *animation.KeyFrames
 }
 
 func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event sports.Event) Screen {
-	logoAnimation := animation.NewAnimation(1*time.Second, 1*time.Second)
-	logoAnimation.Points = map[string]animation.AnimationPoint{
-		"logo1": {Start: image.Point{0, 0}, End: image.Point{-16, 0}},
-		"logo2": {Start: image.Point{64, 0}, End: image.Point{80, 0}},
-	}
+	keyFrames := animation.NewKeyFrames()
 
-	teamNamesAnimation := animation.NewAnimation(1750*time.Millisecond, 500*time.Millisecond)
-	teamNamesAnimation.Colors = map[string]animation.AnimationColor{
-		"teamNames": {Start: color.RGBA{255, 255, 255, 0}, End: color.RGBA{255, 255, 255, 255}},
-	}
+	keyFrames.AddPoint("logoHome", image.Point{0, 0})
+	keyFrames.AddPointTransitions("logoHome",
+		animation.AnimatedPointTransition{Offset: 1000 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{-16, 0}},
+		animation.AnimatedPointTransition{Offset: 4750 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{0, 0}},
+		animation.AnimatedPointTransition{Offset: 5250 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{-16, 0}},
+		animation.AnimatedPointTransition{Offset: 9500 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{0, 0}},
+	)
 
-	dateAndTimeAnimation := animation.NewAnimation(5250*time.Millisecond, 500*time.Millisecond)
-	dateAndTimeAnimation.Colors = map[string]animation.AnimationColor{
-		"dateAndTime": {Start: color.RGBA{255, 255, 255, 0}, End: color.RGBA{255, 255, 255, 255}},
-	}
+	keyFrames.AddPoint("logoAway", image.Point{64, 0})
+	keyFrames.AddPointTransitions("logoAway",
+		animation.AnimatedPointTransition{Offset: 1000 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{80, 0}},
+		animation.AnimatedPointTransition{Offset: 4750 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{64, 0}},
+		animation.AnimatedPointTransition{Offset: 5250 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{80, 0}},
+		animation.AnimatedPointTransition{Offset: 9500 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: image.Point{64, 0}},
+	)
 
-	keyFrames := animation.NewKeyFrames(map[string]*animation.Animation{
-		"logo":        logoAnimation,
-		"teamNames":   teamNamesAnimation,
-		"dateAndTime": dateAndTimeAnimation,
-	})
+	keyFrames.AddColor("teamNames", color.RGBA{255, 255, 255, 0})
+	keyFrames.AddColorTransitions("teamNames",
+		animation.AnimatedColorTransition{Offset: 1000 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{255, 255, 255, 255}},
+		animation.AnimatedColorTransition{Offset: 4750 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{255, 255, 255, 0}},
+	)
+
+	keyFrames.AddColor("dateAndTime", color.RGBA{255, 255, 255, 0})
+	keyFrames.AddColorTransitions("dateAndTime",
+		animation.AnimatedColorTransition{Offset: 5250 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{255, 255, 255, 255}},
+		animation.AnimatedColorTransition{Offset: 9250 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{255, 255, 255, 0}},
+	)
 
 	return &SportsUpcomingGamesScreen{
-		State:          StateNotDisplayed,
-		ScreenDuration: 10 * time.Second,
-		Ctx:            gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		Fonts:          fonts,
-		SportsData:     sportsData,
-		Event:          event,
-		KeyFrames:      keyFrames,
+		State:      StateNotDisplayed,
+		Ctx:        gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
+		Fonts:      fonts,
+		SportsData: sportsData,
+		Event:      event,
+		KeyFrames:  keyFrames,
 	}
 }
 
@@ -107,8 +111,6 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 }
 
 func (s *SportsUpcomingGamesScreen) Render(elapsed time.Duration) (image.Image, bool) {
-	isScreenDone := time.Since(s.KeyFrames.StartTime) > s.ScreenDuration
-
 	// Clear image context
 	s.Ctx.Identity()
 	s.Ctx.SetColor(color.Black)
@@ -120,11 +122,11 @@ func (s *SportsUpcomingGamesScreen) Render(elapsed time.Duration) (image.Image, 
 	case StateTransitionOut:
 		fallthrough
 	case StateDisplayed:
-		s.renderLogoAnimation()
 		s.renderText()
+		s.renderLogoAnimation()
 	}
 
-	return s.Ctx.Image(), isScreenDone
+	return s.Ctx.Image(), s.KeyFrames.HasEnded()
 }
 
 func (s *SportsUpcomingGamesScreen) renderTransitionDisplay() {
@@ -132,8 +134,8 @@ func (s *SportsUpcomingGamesScreen) renderTransitionDisplay() {
 }
 
 func (s *SportsUpcomingGamesScreen) renderLogoAnimation() {
-	logo1Position := s.KeyFrames.GetPoint("logo", "logo1")
-	logo2Position := s.KeyFrames.GetPoint("logo", "logo2")
+	logo1Position := s.KeyFrames.GetPoint("logoHome")
+	logo2Position := s.KeyFrames.GetPoint("logoAway")
 	s.drawLogos(logo1Position, logo2Position)
 }
 
@@ -150,18 +152,13 @@ func (s *SportsUpcomingGamesScreen) drawLogos(logo1Position, logo2Position image
 }
 
 func (s *SportsUpcomingGamesScreen) renderText() {
-	teamNamesColor := s.KeyFrames.GetColor("teamNames", "teamNames")
-	dateAndTimeColor := s.KeyFrames.GetColor("dateAndTime", "dateAndTime")
+	s.Ctx.SetFontFace(s.Fonts.Size5x7)
 
-	if _, _, _, alpha := dateAndTimeColor.RGBA(); alpha == 0 {
-		s.Ctx.SetColor(teamNamesColor)
-		s.Ctx.SetFontFace(s.Fonts.Size5x7)
-
-		s.Ctx.DrawStringAnchored(s.Team1.ShortName, 32, 1, 0.5, 1)
-		s.Ctx.DrawStringAnchored("VS", 32, 8, 0.5, 1)
-		s.Ctx.DrawStringAnchored(s.Team2.ShortName, 32, 15, 0.5, 1)
-		return
-	}
+	teamNamesColor := s.KeyFrames.GetColor("teamNames")
+	s.Ctx.SetColor(teamNamesColor)
+	s.Ctx.DrawStringAnchored(s.Team1.ShortName, 32, 1, 0.5, 1)
+	s.Ctx.DrawStringAnchored("VS", 32, 8, 0.5, 1)
+	s.Ctx.DrawStringAnchored(s.Team2.ShortName, 32, 15, 0.5, 1)
 
 	eventTime, err := time.Parse("2006-01-02T15:04:05", s.Event.Timestamp)
 	if err != nil {
@@ -170,9 +167,8 @@ func (s *SportsUpcomingGamesScreen) renderText() {
 	}
 	eventTime = eventTime.Local()
 
+	dateAndTimeColor := s.KeyFrames.GetColor("dateAndTime")
 	s.Ctx.SetColor(dateAndTimeColor)
-	s.Ctx.SetFontFace(s.Fonts.Size5x7)
-
 	s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Mon")), 32, 1, 0.5, 1)
 	s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Jan 2")), 32, 8, 0.5, 1)
 	s.Ctx.DrawStringAnchored(eventTime.Format("3:04"), 32, 15, 0.5, 1)
