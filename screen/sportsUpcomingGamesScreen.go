@@ -3,7 +3,6 @@ package screen
 import (
 	"image"
 	"image/color"
-	"log"
 	"rpi-rgb-screen/animation"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data/sports"
@@ -22,7 +21,7 @@ type SportsUpcomingGamesScreen struct {
 
 	// Data
 	SportsData sports.SportsData
-	Event      sports.Event
+	Event      *sports.Event
 	Logo1      image.Image
 	Logo2      image.Image
 	Team1      *sports.Team
@@ -32,7 +31,7 @@ type SportsUpcomingGamesScreen struct {
 	KeyFrames *animation.KeyFrames
 }
 
-func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event sports.Event) Screen {
+func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event *sports.Event) Screen {
 	keyFrames := animation.NewKeyFrames()
 
 	keyFrames.AddPoint("logoHome", image.Point{0, 0})
@@ -160,17 +159,10 @@ func (s *SportsUpcomingGamesScreen) renderText() {
 	s.Ctx.DrawStringAnchored("VS", 32, 8, 0.5, 1)
 	s.Ctx.DrawStringAnchored(s.Team2.ShortName, 32, 15, 0.5, 1)
 
-	eventTime, err := time.Parse("2006-01-02T15:04:05", s.Event.Timestamp)
-	if err != nil {
-		log.Printf("Error reading event time from timestamp '%s'.", s.Event.Timestamp)
-		return
-	}
-	eventTime = eventTime.Local()
-
 	dateAndTimeColor := s.KeyFrames.GetColor("dateAndTime")
 	s.Ctx.SetColor(dateAndTimeColor)
-	s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Mon")), 32, 1, 0.5, 1)
-	s.Ctx.DrawStringAnchored(strings.ToUpper(eventTime.Format("Jan 2")), 32, 8, 0.5, 1)
-	s.Ctx.DrawStringAnchored(eventTime.Format("3:04"), 32, 15, 0.5, 1)
-	s.Ctx.DrawStringAnchored(eventTime.Format("PM"), 32, 22, 0.5, 1)
+	s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Mon")), 32, 1, 0.5, 1)
+	s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Jan 2")), 32, 8, 0.5, 1)
+	s.Ctx.DrawStringAnchored(s.Event.Time.Format("3:04"), 32, 15, 0.5, 1)
+	s.Ctx.DrawStringAnchored(s.Event.Time.Format("PM"), 32, 22, 0.5, 1)
 }

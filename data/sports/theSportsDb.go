@@ -9,23 +9,47 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
+	"time"
 )
 
 const baseUrl = "https://www.thesportsdb.com/api/v1/json/123"
 
-type TheSportsDbClient interface {
-	GetLogo(logoUrl string) image.Image
-	GetTeam(teamName string) *Team
-	GetUpcomingEventsForLeague(league int) []Event
+type TheSportsDbClient struct{}
+
+type LeagueSearchResponse struct {
+	Leagues []struct {
+		Id            string `json:"idLeague"`
+		Name          string `json:"strLeague"`
+		CurrentSeason string `json:"strCurrentSeason"`
+		BadgeUrl      string `json:"strBadge"`
+	} `json:"leagues"`
 }
 
-type TheSportsDb struct{}
-
-func NewTheSportsDbClient() TheSportsDbClient {
-	return &TheSportsDb{}
+type TeamSearchResponse struct {
+	Teams []struct {
+		Id        string `json:"idTeam"`
+		Name      string `json:"strTeam"`
+		ShortName string `json:"strTeamShort"`
+		BadgeUrl  string `json:"strBadge"`
+	} `json:"teams"`
 }
 
-func (t *TheSportsDb) GetLogo(logoUrl string) image.Image {
+type EventSearchResponse struct {
+	Events []struct {
+		Id           string `json:"idEvent"`
+		Name         string `json:"strEvent"`
+		HomeTeamName string `json:"strHomeTeam"`
+		AwayTeamName string `json:"strAwayTeam"`
+		Timestamp    string `json:"strTimestamp"`
+	} `json:"events"`
+}
+
+func NewTheSportsDbClient() *TheSportsDbClient {
+	return &TheSportsDbClient{}
+}
+
+func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 	badgeUrl := logoUrl + "/tiny"
 	logoBytes, err := sendGetRequest(badgeUrl)
 	if err != nil {
@@ -42,52 +66,90 @@ func (t *TheSportsDb) GetLogo(logoUrl string) image.Image {
 	return logoImage
 }
 
-type TeamSearchResponse struct {
-	Teams []Team `json:"teams"`
+func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
+	var leagueSearchResponse LeagueSearchResponse
+	url := fmt.Sprintf("%s/lookupleague.php?id=%d", baseUrl, leagueId)
+	err := getAndUnmarshal(url, &leagueSearchResponse)
+	if err != nil {
+		log.Printf("League fetch failed for league ID %d. Error: %s", leagueId, err)
+		return nil
+	}
+
+	if len(leagueSearchResponse.Leagues) < 1 {
+		log.Printf("League fetch failed for league ID %d. Error: %s", leagueId, err)
+		return nil
+	}
+
+	rawLeague := leagueSearchResponse.Leagues[0]
+	return &League{
+		Id:            leagueId,
+		Name:          rawLeague.Name,
+		CurrentSeason: rawLeague.CurrentSeason,
+		BadgeUrl:      rawLeague.BadgeUrl,
+	}
 }
 
-func (t *TheSportsDb) GetTeam(teamName string) *Team {
+func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
+	var teamSearchResponse TeamSearchResponse
 	url := fmt.Sprintf("%s/searchteams.php?t=%s", baseUrl, url.QueryEscape(teamName))
-	responseBody, err := sendGetRequest(url)
+	err := getAndUnmarshal(url, &teamSearchResponse)
 	if err != nil {
 		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
 		return nil
 	}
 
-	var teamSearchResponse TeamSearchResponse
-	err = json.Unmarshal(responseBody, &teamSearchResponse)
-	if err != nil {
-		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
-		return nil
-	}
 	if len(teamSearchResponse.Teams) < 1 {
 		log.Printf("Team fetch failed for team name %s. No results found.", teamName)
 		return nil
 	}
 
-	return &teamSearchResponse.Teams[0]
-}
-
-type EventSearchResponse struct {
-	Events []Event `json:"events"`
-}
-
-func (t *TheSportsDb) GetUpcomingEventsForLeague(league int) []Event {
-	url := fmt.Sprintf("%s/eventsseason.php?id=%d&s=2025", baseUrl, league)
-	responseBody, err := sendGetRequest(url)
+	rawTeam := teamSearchResponse.Teams[0]
+	teamId, err := strconv.Atoi(rawTeam.Id)
 	if err != nil {
-		log.Printf("Upcoming event fetch failed for league %d. Error: %s", league, err)
+		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
 		return nil
 	}
 
+	return &Team{
+		Id:        teamId,
+		Name:      rawTeam.Name,
+		ShortName: rawTeam.ShortName,
+		BadgeUrl:  rawTeam.BadgeUrl,
+	}
+}
+
+func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	var eventSearchResponse EventSearchResponse
-	err = json.Unmarshal(responseBody, &eventSearchResponse)
+	url := fmt.Sprintf("%s/eventsnext.php?id=%d", baseUrl, teamId)
+	err := getAndUnmarshal(url, &eventSearchResponse)
 	if err != nil {
-		log.Printf("Upcoming event fetch failed for league %d. Error: %s", league, err)
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	if len(eventSearchResponse.Events) < 1 {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. No results found.", teamId)
 		return nil
 	}
 
-	return eventSearchResponse.Events
+	rawEvent := eventSearchResponse.Events[0]
+	eventId, err := strconv.Atoi(rawEvent.Id)
+	if err != nil {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
+	if err != nil {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+
+	return &Event{
+		Id:           eventId,
+		Name:         rawEvent.Name,
+		HomeTeamName: rawEvent.HomeTeamName,
+		AwayTeamName: rawEvent.AwayTeamName,
+		Time:         eventTime.Local(),
+	}
 }
 
 func sendGetRequest(url string) ([]byte, error) {
@@ -95,5 +157,15 @@ func sendGetRequest(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return io.ReadAll(response.Body)
+}
+
+func getAndUnmarshal(url string, responseObject any) error {
+	responseBody, err := sendGetRequest(url)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(responseBody, responseObject)
 }

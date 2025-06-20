@@ -1,0 +1,45 @@
+package constants
+
+// Leagues
+
+const LEAGUE_CFL = 4405
+
+var LEAGUES = []int{LEAGUE_CFL}
+
+var LEAGUE_TEAMS = map[int][]int{
+	LEAGUE_CFL: {
+		TEAM_CFL_BC,
+		TEAM_CFL_CGY,
+		TEAM_CFL_EDM,
+		TEAM_CFL_HAM,
+		TEAM_CFL_MTL,
+		TEAM_CFL_OTT,
+		TEAM_CFL_SSK,
+		TEAM_CFL_TOR,
+		TEAM_CFL_WPG,
+	},
+}
+
+// Teams
+
+const TEAM_CFL_BC = 135006
+const TEAM_CFL_CGY = 135007
+const TEAM_CFL_EDM = 135008
+const TEAM_CFL_HAM = 135002
+const TEAM_CFL_MTL = 135003
+const TEAM_CFL_OTT = 135004
+const TEAM_CFL_SSK = 135009
+const TEAM_CFL_TOR = 135005
+const TEAM_CFL_WPG = 135010
+
+var TEAM_SHORT_NAMES = map[int]string{
+	TEAM_CFL_BC:  "BC",
+	TEAM_CFL_CGY: "CGY",
+	TEAM_CFL_EDM: "EDM",
+	TEAM_CFL_HAM: "HAM",
+	TEAM_CFL_MTL: "MTL",
+	TEAM_CFL_OTT: "OTT",
+	TEAM_CFL_SSK: "SSK",
+	TEAM_CFL_TOR: "TOR",
+	TEAM_CFL_WPG: "WPG",
+}
