@@ -13,14 +13,14 @@ type League struct {
 	Id            int
 	Name          string
 	CurrentSeason string
-	BadgeUrl      string
+	LogoUrl       string
 }
 
 type Team struct {
 	Id        int
 	Name      string
 	ShortName string
-	BadgeUrl  string
+	LogoUrl   string
 }
 
 type Event struct {
@@ -118,7 +118,7 @@ func (s *SportsDataManager) GetLogo(teamName string) image.Image {
 		return nil
 	}
 
-	logo := s.TheSportsDbClient.GetLogo(team.BadgeUrl)
+	logo := s.TheSportsDbClient.GetLogo(team.LogoUrl)
 	if logo == nil {
 		return nil
 	}

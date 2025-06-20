@@ -85,7 +85,7 @@ func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 		Id:            leagueId,
 		Name:          rawLeague.Name,
 		CurrentSeason: rawLeague.CurrentSeason,
-		BadgeUrl:      rawLeague.BadgeUrl,
+		LogoUrl:       rawLeague.BadgeUrl,
 	}
 }
 
@@ -114,7 +114,7 @@ func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 		Id:        teamId,
 		Name:      rawTeam.Name,
 		ShortName: rawTeam.ShortName,
-		BadgeUrl:  rawTeam.BadgeUrl,
+		LogoUrl:   rawTeam.BadgeUrl,
 	}
 }
 
