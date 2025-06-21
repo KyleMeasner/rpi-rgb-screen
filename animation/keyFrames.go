@@ -114,6 +114,10 @@ func (k *KeyFrames) GetPoint(key string) image.Point {
 		return image.Point{}
 	}
 
+	if !k.HasStarted() {
+		return animatedPoint.StartValue
+	}
+
 	timeSinceStart := time.Since(k.StartTime)
 	currValue := animatedPoint.StartValue
 	for _, transition := range animatedPoint.Transitions {
@@ -183,6 +187,10 @@ func (k *KeyFrames) GetColor(key string) color.RGBA {
 	animatedColor, ok := k.Colors[key]
 	if !ok {
 		return color.RGBA{}
+	}
+
+	if !k.HasStarted() {
+		return animatedColor.StartValue
 	}
 
 	timeSinceStart := time.Since(k.StartTime)
