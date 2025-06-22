@@ -4,7 +4,7 @@ import (
 	"image"
 	"rpi-rgb-screen/animation"
 	"rpi-rgb-screen/constants"
-	"rpi-rgb-screen/screen"
+	"rpi-rgb-screen/render"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -14,13 +14,13 @@ import (
 type SlideInTransition struct {
 	Ctx       *gg.Context
 	Position  image.Point
-	OldScreen screen.Screen
-	NewScreen screen.Screen
+	OldScreen render.Renderable
+	NewScreen render.Renderable
 	KeyFrames *animation.KeyFrames
 }
 
-func NewSlideInTransition(oldScreen, newScreen screen.Screen) Transition {
-	keyFrames := animation.NewKeyFrames()
+func NewSlideInTransition(oldScreen, newScreen render.Renderable) Transition {
+	keyFrames := animation.NewKeyFrames(1500 * time.Millisecond)
 
 	keyFrames.AddPoint("oldScreen", image.Point{0, 0})
 	keyFrames.AddPointTransitions("oldScreen",

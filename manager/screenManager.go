@@ -3,6 +3,7 @@ package manager
 import (
 	"image"
 	"image/draw"
+	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/screen"
@@ -23,9 +24,16 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 		screen.NewDummyScreen(fonts),
 	}
 
-	events := dataManager.SportsData.GetUpcomingEvents()
-	for _, event := range events {
-		screens = append(screens, screen.NewSportsUpcomingGamesScreen(fonts, dataManager.SportsData, event))
+	for _, leagueId := range constants.LEAGUES {
+		events := dataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
+		if len(events) == 0 {
+			continue
+		}
+
+		screens = append(screens, screen.NewSportsLeagueScreen(fonts, dataManager.SportsData, leagueId))
+		for _, event := range events {
+			screens = append(screens, screen.NewSportsUpcomingGamesScreen(fonts, dataManager.SportsData, event))
+		}
 	}
 
 	return &ScreenManager{

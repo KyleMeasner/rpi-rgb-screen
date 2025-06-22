@@ -32,14 +32,15 @@ type Event struct {
 }
 
 type SportsData interface {
-	GetUpcomingEvents() []*Event
+	GetUpcomingEventsForLeague(leagueId int) []*Event
+	GetLeague(leagueId int) *League
 	GetTeam(teamName string) *Team
 	GetLogo(teamName string) image.Image
 }
 
 type SportsDataManager struct {
 	TheSportsDbClient *TheSportsDbClient
-	Events            map[int]*Event
+	Events            map[int]map[int]*Event
 	Leagues           map[int]*League
 	Teams             map[string]*Team
 	Logos             map[string]image.Image
@@ -48,26 +49,30 @@ type SportsDataManager struct {
 func NewSportsData() SportsData {
 	return &SportsDataManager{
 		TheSportsDbClient: NewTheSportsDbClient(),
-		Events:            map[int]*Event{},
+		Events:            map[int]map[int]*Event{},
+		Leagues:           map[int]*League{},
 		Teams:             map[string]*Team{},
 		Logos:             map[string]image.Image{},
 	}
 }
 
-func (s *SportsDataManager) GetUpcomingEvents() []*Event {
-	if len(s.Events) == 0 {
-		for _, leagueId := range constants.LEAGUES {
-			for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
-				nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
-				if nextGame != nil {
-					s.Events[nextGame.Id] = nextGame
-				}
+func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
+	_, ok := s.Events[leagueId]
+	if !ok {
+		s.Events[leagueId] = map[int]*Event{}
+	}
+
+	if len(s.Events[leagueId]) == 0 {
+		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
+			nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
+			if nextGame != nil {
+				s.Events[leagueId][nextGame.Id] = nextGame
 			}
 		}
 	}
 
 	eventsSlice := []*Event{}
-	for _, event := range s.Events {
+	for _, event := range s.Events[leagueId] {
 		eventsSlice = append(eventsSlice, event)
 	}
 
@@ -108,21 +113,16 @@ func (s *SportsDataManager) GetTeam(teamName string) *Team {
 	return team
 }
 
-func (s *SportsDataManager) GetLogo(teamName string) image.Image {
-	if logo, ok := s.Logos[teamName]; ok {
+func (s *SportsDataManager) GetLogo(logoUrl string) image.Image {
+	if logo, ok := s.Logos[logoUrl]; ok {
 		return logo
 	}
 
-	team := s.GetTeam(teamName)
-	if team == nil {
-		return nil
-	}
-
-	logo := s.TheSportsDbClient.GetLogo(team.LogoUrl)
+	logo := s.TheSportsDbClient.GetLogo(logoUrl)
 	if logo == nil {
 		return nil
 	}
 
-	s.Logos[teamName] = logo
+	s.Logos[logoUrl] = logo
 	return logo
 }

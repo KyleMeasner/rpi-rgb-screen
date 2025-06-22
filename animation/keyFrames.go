@@ -10,10 +10,9 @@ import (
 
 type KeyFrames struct {
 	StartTime time.Time
+	Duration  time.Duration
 	Points    map[string]*AnimatedPoint
 	Colors    map[string]*AnimatedColor
-
-	totalDuration time.Duration
 }
 
 type AnimatedPoint struct {
@@ -38,10 +37,11 @@ type AnimatedColorTransition struct {
 	EndValue color.RGBA
 }
 
-func NewKeyFrames() *KeyFrames {
+func NewKeyFrames(duration time.Duration) *KeyFrames {
 	return &KeyFrames{
-		Points: map[string]*AnimatedPoint{},
-		Colors: map[string]*AnimatedColor{},
+		Duration: duration,
+		Points:   map[string]*AnimatedPoint{},
+		Colors:   map[string]*AnimatedColor{},
 	}
 }
 
@@ -64,7 +64,7 @@ func (k *KeyFrames) HasEnded() bool {
 	if !k.HasStarted() {
 		return false
 	}
-	return k.RunTime() > k.totalDuration
+	return k.RunTime() >= k.Duration
 }
 
 func (k *KeyFrames) AddPoint(key string, startValue image.Point) error {
@@ -96,10 +96,6 @@ func (k *KeyFrames) AddPointTransitions(key string, transitions ...AnimatedPoint
 		}
 
 		animatedPoint.Transitions = append(animatedPoint.Transitions, transition)
-
-		if k.totalDuration < transition.Offset+transition.Duration {
-			k.totalDuration = transition.Offset + transition.Duration
-		}
 	}
 
 	slices.SortFunc(animatedPoint.Transitions, func(a, b AnimatedPointTransition) int {
@@ -171,10 +167,6 @@ func (k *KeyFrames) AddColorTransitions(key string, transitions ...AnimatedColor
 		}
 
 		animatedColor.Transitions = append(animatedColor.Transitions, transition)
-
-		if k.totalDuration < transition.Offset+transition.Duration {
-			k.totalDuration = transition.Offset + transition.Duration
-		}
 	}
 
 	slices.SortFunc(animatedColor.Transitions, func(a, b AnimatedColorTransition) int {

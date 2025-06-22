@@ -32,7 +32,7 @@ type SportsUpcomingGamesScreen struct {
 }
 
 func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event *sports.Event) Screen {
-	keyFrames := animation.NewKeyFrames()
+	keyFrames := animation.NewKeyFrames(10 * time.Second)
 
 	keyFrames.AddPoint("logoAway", image.Point{0, 0})
 	keyFrames.AddPointTransitions("logoAway",
@@ -83,24 +83,24 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 	doneChan := make(chan bool)
 
 	go func() {
-		if s.LogoHome == nil {
-			logo1 := s.SportsData.GetLogo(s.Event.HomeTeamName)
-			if logo1 != nil {
-				s.LogoHome = utils.ResizeImage(logo1, 32)
-			}
-		}
-		if s.LogoAway == nil {
-			logo2 := s.SportsData.GetLogo(s.Event.AwayTeamName)
-			if logo2 != nil {
-				s.LogoAway = utils.ResizeImage(logo2, 32)
-			}
-		}
-
 		if s.TeamHome == nil {
 			s.TeamHome = s.SportsData.GetTeam(s.Event.HomeTeamName)
 		}
 		if s.TeamAway == nil {
 			s.TeamAway = s.SportsData.GetTeam(s.Event.AwayTeamName)
+		}
+
+		if s.LogoHome == nil && s.TeamHome != nil {
+			logoHome := s.SportsData.GetLogo(s.TeamHome.LogoUrl)
+			if logoHome != nil {
+				s.LogoHome = utils.ResizeImage(logoHome, 32)
+			}
+		}
+		if s.LogoAway == nil && s.TeamAway != nil {
+			logoAway := s.SportsData.GetLogo(s.TeamAway.LogoUrl)
+			if logoAway != nil {
+				s.LogoAway = utils.ResizeImage(logoAway, 32)
+			}
 		}
 
 		close(doneChan)
@@ -117,43 +117,39 @@ func (s *SportsUpcomingGamesScreen) Render(elapsed time.Duration) (image.Image, 
 
 	switch s.State {
 	case StateTransitionIn:
-		s.renderLogoAnimation()
+		s.renderLogos()
 	case StateTransitionOut:
 		fallthrough
 	case StateDisplayed:
 		s.renderText()
-		s.renderLogoAnimation()
+		s.renderLogos()
 	}
 
 	return s.Ctx.Image(), s.KeyFrames.HasEnded()
 }
 
-func (s *SportsUpcomingGamesScreen) renderLogoAnimation() {
-	logoHomePosition := s.KeyFrames.GetPoint("logoHome")
-	logoAwayPosition := s.KeyFrames.GetPoint("logoAway")
-	s.drawLogos(logoHomePosition, logoAwayPosition)
-}
-
-func (s *SportsUpcomingGamesScreen) drawLogos(logoHomePosition, logoAwayPosition image.Point) {
+func (s *SportsUpcomingGamesScreen) renderLogos() {
 	// Draw the away team logo first so it is underneath the home logo if they overlap
 	if s.LogoAway != nil {
-		resizedLogo := utils.ResizeImage(s.LogoAway, 32)
-		s.Ctx.DrawImageAnchored(resizedLogo, logoAwayPosition.X, logoAwayPosition.Y, 0, 0)
+		logoAwayPosition := s.KeyFrames.GetPoint("logoAway")
+		s.Ctx.DrawImageAnchored(s.LogoAway, logoAwayPosition.X, logoAwayPosition.Y, 0, 0)
 	}
 	if s.LogoHome != nil {
-		resizedLogo := utils.ResizeImage(s.LogoHome, 32)
-		s.Ctx.DrawImageAnchored(resizedLogo, logoHomePosition.X, logoHomePosition.Y, 0, 0)
+		logoHomePosition := s.KeyFrames.GetPoint("logoHome")
+		s.Ctx.DrawImageAnchored(s.LogoHome, logoHomePosition.X, logoHomePosition.Y, 0, 0)
 	}
 }
 
 func (s *SportsUpcomingGamesScreen) renderText() {
-	teamNamesColor := s.KeyFrames.GetColor("teamNames")
-	s.Ctx.SetFontFace(s.Fonts.Size8x13B)
-	s.Ctx.SetColor(teamNamesColor)
-	s.Ctx.DrawStringAnchored(s.TeamAway.ShortName, 32, -3, 0.5, 1)
-	s.Ctx.DrawStringAnchored(s.TeamHome.ShortName, 32, 31, 0.5, 0)
-	s.Ctx.SetFontFace(s.Fonts.Size6x10)
-	s.Ctx.DrawStringAnchored("@", 32, 14, 0.5, 0.5)
+	if s.TeamHome != nil && s.TeamAway != nil {
+		teamNamesColor := s.KeyFrames.GetColor("teamNames")
+		s.Ctx.SetFontFace(s.Fonts.Size8x13B)
+		s.Ctx.SetColor(teamNamesColor)
+		s.Ctx.DrawStringAnchored(s.TeamAway.ShortName, 32, -3, 0.5, 1)
+		s.Ctx.DrawStringAnchored(s.TeamHome.ShortName, 32, 31, 0.5, 0)
+		s.Ctx.SetFontFace(s.Fonts.Size6x10)
+		s.Ctx.DrawStringAnchored("@", 32, 14, 0.5, 0.5)
+	}
 
 	dateAndTimeColor := s.KeyFrames.GetColor("dateAndTime")
 	s.Ctx.SetFontFace(s.Fonts.Size5x7)
