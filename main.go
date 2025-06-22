@@ -33,6 +33,7 @@ func main() {
 
 	dataManager := data.NewDataManager()
 	screenManager := manager.NewScreenManager(fontCache, canvas, dataManager)
+	screenManager.Initialize()
 	screenManager.Run()
 }
 

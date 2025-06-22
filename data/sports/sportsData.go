@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-const LEAGE_CFL = 4405
-
 type League struct {
 	Id            int
 	Name          string

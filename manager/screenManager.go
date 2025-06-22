@@ -3,6 +3,7 @@ package manager
 import (
 	"image"
 	"image/draw"
+	"log"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
@@ -17,6 +18,7 @@ type ScreenManager struct {
 	Screens     []screen.Screen
 	Canvas      *rgbmatrix.Canvas
 	DataManager *data.DataManager
+	Fonts       *fonts.Fonts
 }
 
 func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager *data.DataManager) *ScreenManager {
@@ -24,22 +26,29 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 		screen.NewDummyScreen(fonts),
 	}
 
-	for _, leagueId := range constants.LEAGUES {
-		events := dataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
-		if len(events) == 0 {
-			continue
-		}
-
-		screens = append(screens, screen.NewSportsLeagueScreen(fonts, dataManager.SportsData, leagueId))
-		for _, event := range events {
-			screens = append(screens, screen.NewSportsUpcomingGamesScreen(fonts, dataManager.SportsData, event))
-		}
-	}
-
 	return &ScreenManager{
 		Screens:     screens,
 		Canvas:      canvas,
 		DataManager: dataManager,
+		Fonts:       fonts,
+	}
+}
+
+func (s *ScreenManager) Initialize() {
+	log.Println("Initializing Screen Manager")
+
+	for _, leagueId := range constants.LEAGUES {
+		log.Printf("Initializing event data for league %d", leagueId)
+		events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
+		if len(events) == 0 {
+			return
+		}
+
+		s.Screens = append(s.Screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
+		for _, event := range events {
+			s.Screens = append(s.Screens, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
+		}
+		log.Printf("Initialization complete for league %d", leagueId)
 	}
 }
 

@@ -7,6 +7,7 @@ require (
 	github.com/fogleman/gg v1.3.0
 	github.com/zachomedia/go-bdf v0.0.0-20220611021443-a3af701111be
 	golang.org/x/image v0.28.0
+	golang.org/x/time v0.12.0
 )
 
 require (
