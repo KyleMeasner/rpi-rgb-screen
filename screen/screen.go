@@ -2,7 +2,7 @@ package screen
 
 import (
 	"image"
-	"time"
+	"rpi-rgb-screen/transition"
 )
 
 type ScreenState int
@@ -15,7 +15,8 @@ const (
 )
 
 type Screen interface {
-	Render(elapsed time.Duration) (image.Image, bool)
+	Render() (image.Image, bool)
 	Refresh() chan bool
 	SetState(state ScreenState)
+	GetPreferredTransition() transition.Transition
 }

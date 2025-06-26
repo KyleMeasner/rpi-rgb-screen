@@ -13,6 +13,7 @@ type KeyFrames struct {
 	Duration  time.Duration
 	Points    map[string]*AnimatedPoint
 	Colors    map[string]*AnimatedColor
+	Numbers   map[string]*AnimatedNumber
 }
 
 type AnimatedPoint struct {
@@ -37,11 +38,23 @@ type AnimatedColorTransition struct {
 	EndValue color.RGBA
 }
 
+type AnimatedNumber struct {
+	StartValue  int
+	Transitions []AnimatedNumberTransition
+}
+
+type AnimatedNumberTransition struct {
+	Offset   time.Duration
+	Duration time.Duration
+	EndValue int
+}
+
 func NewKeyFrames(duration time.Duration) *KeyFrames {
 	return &KeyFrames{
 		Duration: duration,
 		Points:   map[string]*AnimatedPoint{},
 		Colors:   map[string]*AnimatedColor{},
+		Numbers:  map[string]*AnimatedNumber{},
 	}
 }
 
@@ -202,6 +215,74 @@ func (k *KeyFrames) GetColor(key string) color.RGBA {
 				B: uint8(computeValue(int(currValue.B), int(transition.EndValue.B), percentComplete)),
 				A: uint8(computeValue(int(currValue.A), int(transition.EndValue.A), percentComplete)),
 			}
+		}
+
+		// This transition has already ended
+		currValue = transition.EndValue
+	}
+
+	return currValue
+}
+
+func (k *KeyFrames) AddNumber(key string, startValue int) error {
+	if _, ok := k.Points[key]; ok {
+		return fmt.Errorf("KeyFrames already has a Number registered under key '%s'", key)
+	}
+
+	k.Numbers[key] = &AnimatedNumber{
+		StartValue:  startValue,
+		Transitions: []AnimatedNumberTransition{},
+	}
+
+	return nil
+}
+
+func (k *KeyFrames) AddNumberTransitions(key string, transitions ...AnimatedNumberTransition) error {
+	animatedNumber, ok := k.Numbers[key]
+	if !ok {
+		return fmt.Errorf("KeyFrames does not have a Number registered under key '%s'", key)
+	}
+
+	for _, transition := range transitions {
+		transitionOverlaps := slices.ContainsFunc(animatedNumber.Transitions, func(existing AnimatedNumberTransition) bool {
+			return transition.Offset >= existing.Offset && transition.Offset < existing.Offset+existing.Duration
+		})
+		if transitionOverlaps {
+			return fmt.Errorf(
+				"unable to add Number transition to key '%s' due to overlap with existing transition. Offset of new transition: %d", key, transition.Offset)
+		}
+
+		animatedNumber.Transitions = append(animatedNumber.Transitions, transition)
+	}
+
+	slices.SortFunc(animatedNumber.Transitions, func(a, b AnimatedNumberTransition) int {
+		return int(a.Offset - b.Offset)
+	})
+	return nil
+}
+
+func (k *KeyFrames) GetNumber(key string) int {
+	animatedNumber, ok := k.Numbers[key]
+	if !ok {
+		return 0
+	}
+
+	if !k.HasStarted() {
+		return animatedNumber.StartValue
+	}
+
+	timeSinceStart := time.Since(k.StartTime)
+	currValue := animatedNumber.StartValue
+	for _, transition := range animatedNumber.Transitions {
+		// All transitions past this point start after the current time
+		if timeSinceStart < transition.Offset {
+			return currValue
+		}
+
+		// We're in the middle of this transition
+		if timeSinceStart >= transition.Offset && timeSinceStart < transition.Offset+transition.Duration {
+			percentComplete := float64(timeSinceStart-transition.Offset) / float64(transition.Duration)
+			return computeValue(currValue, transition.EndValue, percentComplete)
 		}
 
 		// This transition has already ended

@@ -7,6 +7,7 @@ import (
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data/sports"
 	"rpi-rgb-screen/fonts"
+	"rpi-rgb-screen/transition"
 	"rpi-rgb-screen/utils"
 	"strings"
 	"time"
@@ -72,6 +73,10 @@ func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsDa
 	}
 }
 
+func (s *SportsUpcomingGamesScreen) GetPreferredTransition() transition.Transition {
+	return transition.NewSlideInTransition()
+}
+
 func (s *SportsUpcomingGamesScreen) SetState(state ScreenState) {
 	s.State = state
 	if state == StateDisplayed {
@@ -109,7 +114,7 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 	return doneChan
 }
 
-func (s *SportsUpcomingGamesScreen) Render(elapsed time.Duration) (image.Image, bool) {
+func (s *SportsUpcomingGamesScreen) Render() (image.Image, bool) {
 	// Clear image context
 	s.Ctx.Identity()
 	s.Ctx.SetColor(color.Black)

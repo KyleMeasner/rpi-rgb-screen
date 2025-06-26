@@ -2,9 +2,11 @@ package transition
 
 import (
 	"image"
-	"time"
+	"rpi-rgb-screen/render"
 )
 
 type Transition interface {
-	Render(elapsed time.Duration) (image.Image, bool)
+	SetScreens(oldScreen, newScreen render.Renderable)
+	Start()
+	Render() (image.Image, bool)
 }

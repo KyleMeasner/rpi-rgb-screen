@@ -7,6 +7,7 @@ import (
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data/sports"
 	"rpi-rgb-screen/fonts"
+	"rpi-rgb-screen/transition"
 	"rpi-rgb-screen/utils"
 	"time"
 
@@ -28,11 +29,15 @@ func NewSportsLeagueScreen(fonts *fonts.Fonts, sportsData sports.SportsData, lea
 	return &SportsLeagueScreen{
 		State:      StateNotDisplayed,
 		Ctx:        gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		KeyFrames:  animation.NewKeyFrames(5 * time.Second),
+		KeyFrames:  animation.NewKeyFrames(3 * time.Second),
 		Fonts:      fonts,
 		SportsData: sportsData,
 		LeagueId:   leagueId,
 	}
+}
+
+func (s *SportsLeagueScreen) GetPreferredTransition() transition.Transition {
+	return transition.NewZoomInTransition()
 }
 
 func (s *SportsLeagueScreen) SetState(state ScreenState) {
@@ -63,7 +68,7 @@ func (s *SportsLeagueScreen) Refresh() chan bool {
 	return doneChan
 }
 
-func (s *SportsLeagueScreen) Render(elapsed time.Duration) (image.Image, bool) {
+func (s *SportsLeagueScreen) Render() (image.Image, bool) {
 	// Clear image context
 	s.Ctx.Identity()
 	s.Ctx.SetColor(color.Black)
