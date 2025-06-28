@@ -2,14 +2,11 @@ package sports
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
 	"image"
-	"io"
 	"log"
-	"net/http"
 	"net/url"
+	"rpi-rgb-screen/utils"
 	"strconv"
 	"time"
 
@@ -58,7 +55,7 @@ func NewTheSportsDbClient() *TheSportsDbClient {
 
 func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 	badgeUrl := logoUrl + "/tiny"
-	logoBytes, err := t.sendGetRequest(badgeUrl)
+	logoBytes, err := utils.SendGetRequest(badgeUrl, nil) // Not a rate limited API
 	if err != nil {
 		log.Printf("Logo fetch failed. Error: %s", err)
 		return nil
@@ -76,7 +73,7 @@ func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 	var leagueSearchResponse LeagueSearchResponse
 	url := fmt.Sprintf("%s/lookupleague.php?id=%d", baseUrl, leagueId)
-	err := t.getAndUnmarshal(url, &leagueSearchResponse)
+	err := utils.GetAndUnmarshal(url, &leagueSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("League fetch failed for league ID %d. Error: %s", leagueId, err)
 		return nil
@@ -99,7 +96,7 @@ func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 	var teamSearchResponse TeamSearchResponse
 	url := fmt.Sprintf("%s/searchteams.php?t=%s", baseUrl, url.QueryEscape(teamName))
-	err := t.getAndUnmarshal(url, &teamSearchResponse)
+	err := utils.GetAndUnmarshal(url, &teamSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
 		return nil
@@ -128,7 +125,7 @@ func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	var eventSearchResponse EventSearchResponse
 	url := fmt.Sprintf("%s/eventsnext.php?id=%d", baseUrl, teamId)
-	err := t.getAndUnmarshal(url, &eventSearchResponse)
+	err := utils.GetAndUnmarshal(url, &eventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
@@ -157,23 +154,4 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 		AwayTeamName: rawEvent.AwayTeamName,
 		Time:         eventTime.Local(),
 	}
-}
-
-func (t *TheSportsDbClient) sendGetRequest(url string) ([]byte, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	return io.ReadAll(response.Body)
-}
-
-func (t *TheSportsDbClient) getAndUnmarshal(url string, responseObject any) error {
-	t.RateLimiter.Wait(context.Background())
-	responseBody, err := t.sendGetRequest(url)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(responseBody, responseObject)
 }

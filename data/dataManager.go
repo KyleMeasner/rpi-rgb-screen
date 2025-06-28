@@ -1,13 +1,18 @@
 package data
 
-import "rpi-rgb-screen/data/sports"
+import (
+	"rpi-rgb-screen/data/sports"
+	"rpi-rgb-screen/data/weather"
+)
 
 type DataManager struct {
-	SportsData sports.SportsData
+	SportsData  sports.SportsData
+	WeatherData weather.WeatherData
 }
 
 func NewDataManager() *DataManager {
 	return &DataManager{
-		SportsData: sports.NewSportsData(),
+		SportsData:  sports.NewSportsData(),
+		WeatherData: weather.NewWeatherData(),
 	}
 }

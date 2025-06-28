@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"rpi-rgb-screen/config"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
@@ -13,6 +14,11 @@ import (
 )
 
 func main() {
+	err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	config := &rgbmatrix.DefaultConfig
 	config.Rows = constants.SCREEN_HEIGHT
 	config.Cols = constants.SCREEN_WIDTH

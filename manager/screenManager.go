@@ -36,6 +36,7 @@ func (s *ScreenManager) Initialize() {
 	s.Screens = [][]screen.Screen{
 		{screen.NewLoadingScreen(s.Fonts)},
 	}
+	s.initializeWeatherScreens()
 	go s.initializeSportsLeagues()
 }
 
@@ -53,6 +54,12 @@ func (s *ScreenManager) initializeSportsLeagues() {
 		}
 		s.Screens = append(s.Screens, screenGroup)
 	}
+}
+
+func (s *ScreenManager) initializeWeatherScreens() {
+	currentWeatherScreen := screen.NewWeatherCurrentScreen(s.Fonts, s.DataManager.WeatherData)
+	forecastScreen := screen.NewWeatherForecastScreen(s.Fonts, s.DataManager.WeatherData)
+	s.Screens = append(s.Screens, []screen.Screen{currentWeatherScreen, forecastScreen})
 }
 
 func (s *ScreenManager) Run() {

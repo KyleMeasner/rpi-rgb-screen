@@ -29,7 +29,7 @@ func NewSportsLeagueScreen(fonts *fonts.Fonts, sportsData sports.SportsData, lea
 	return &SportsLeagueScreen{
 		State:      StateNotDisplayed,
 		Ctx:        gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		KeyFrames:  animation.NewKeyFrames(3 * time.Second),
+		KeyFrames:  animation.NewKeyFrames(2 * time.Second),
 		Fonts:      fonts,
 		SportsData: sportsData,
 		LeagueId:   leagueId,
