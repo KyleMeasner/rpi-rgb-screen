@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"bytes"
 	"image"
 	"math"
+	"os"
 
 	"github.com/fogleman/gg"
 )
@@ -16,4 +18,18 @@ func ResizeImage(image image.Image, newWidthOrHeight int) image.Image {
 	resizeCtx.ScaleAbout(scaleFactor, scaleFactor, float64(center), float64(center))
 	resizeCtx.DrawImageAnchored(image, center, center, 0.5, 0.5)
 	return resizeCtx.Image()
+}
+
+func ReadImageFromFile(filePath string) (image.Image, error) {
+	fileContents, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	image, _, err := image.Decode(bytes.NewReader(fileContents))
+	if err != nil {
+		return nil, err
+	}
+
+	return image, nil
 }

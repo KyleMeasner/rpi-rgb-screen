@@ -42,8 +42,12 @@ func (s *SportsLeagueScreen) GetPreferredTransition() transition.Transition {
 
 func (s *SportsLeagueScreen) SetState(state ScreenState) {
 	s.State = state
-	if state == StateDisplayed {
+
+	switch state {
+	case StateDisplayed:
 		s.KeyFrames.Start()
+	case StateTransitionIn:
+		s.KeyFrames.Reset()
 	}
 }
 

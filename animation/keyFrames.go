@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"rpi-rgb-screen/utils"
 	"slices"
 	"time"
 )
@@ -60,6 +61,10 @@ func NewKeyFrames(duration time.Duration) *KeyFrames {
 
 func (k *KeyFrames) Start() {
 	k.StartTime = time.Now()
+}
+
+func (k *KeyFrames) Reset() {
+	k.StartTime = time.Time{}
 }
 
 func (k *KeyFrames) HasStarted() bool {
@@ -139,8 +144,8 @@ func (k *KeyFrames) GetPoint(key string) image.Point {
 		if timeSinceStart >= transition.Offset && timeSinceStart < transition.Offset+transition.Duration {
 			percentComplete := float64(timeSinceStart-transition.Offset) / float64(transition.Duration)
 			return image.Point{
-				X: computeValue(currValue.X, transition.EndValue.X, percentComplete),
-				Y: computeValue(currValue.Y, transition.EndValue.Y, percentComplete),
+				X: utils.ComputeValue(currValue.X, transition.EndValue.X, percentComplete),
+				Y: utils.ComputeValue(currValue.Y, transition.EndValue.Y, percentComplete),
 			}
 		}
 
@@ -210,10 +215,10 @@ func (k *KeyFrames) GetColor(key string) color.RGBA {
 		if timeSinceStart >= transition.Offset && timeSinceStart < transition.Offset+transition.Duration {
 			percentComplete := float64(timeSinceStart-transition.Offset) / float64(transition.Duration)
 			return color.RGBA{
-				R: uint8(computeValue(int(currValue.R), int(transition.EndValue.R), percentComplete)),
-				G: uint8(computeValue(int(currValue.G), int(transition.EndValue.G), percentComplete)),
-				B: uint8(computeValue(int(currValue.B), int(transition.EndValue.B), percentComplete)),
-				A: uint8(computeValue(int(currValue.A), int(transition.EndValue.A), percentComplete)),
+				R: uint8(utils.ComputeValue(int(currValue.R), int(transition.EndValue.R), percentComplete)),
+				G: uint8(utils.ComputeValue(int(currValue.G), int(transition.EndValue.G), percentComplete)),
+				B: uint8(utils.ComputeValue(int(currValue.B), int(transition.EndValue.B), percentComplete)),
+				A: uint8(utils.ComputeValue(int(currValue.A), int(transition.EndValue.A), percentComplete)),
 			}
 		}
 
@@ -282,7 +287,7 @@ func (k *KeyFrames) GetNumber(key string) int {
 		// We're in the middle of this transition
 		if timeSinceStart >= transition.Offset && timeSinceStart < transition.Offset+transition.Duration {
 			percentComplete := float64(timeSinceStart-transition.Offset) / float64(transition.Duration)
-			return computeValue(currValue, transition.EndValue, percentComplete)
+			return utils.ComputeValue(currValue, transition.EndValue, percentComplete)
 		}
 
 		// This transition has already ended
@@ -290,8 +295,4 @@ func (k *KeyFrames) GetNumber(key string) int {
 	}
 
 	return currValue
-}
-
-func computeValue(start, end int, percentComplete float64) int {
-	return start + int(float64(end-start)*percentComplete)
 }

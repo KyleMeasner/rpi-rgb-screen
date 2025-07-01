@@ -3,7 +3,6 @@ package manager
 import (
 	"image"
 	"image/draw"
-	"log"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
@@ -32,7 +31,6 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 }
 
 func (s *ScreenManager) Initialize() {
-	log.Println("Initializing Screen Manager")
 	s.Screens = [][]screen.Screen{
 		{screen.NewLoadingScreen(s.Fonts)},
 	}

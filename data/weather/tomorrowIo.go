@@ -20,8 +20,10 @@ type TomorrowIoClient struct {
 type RealtimeWeatherResponse struct {
 	Data struct {
 		Values struct {
-			Temperature float64 `json:"temperature"`
-			WeatherCode int     `json:"weatherCode"`
+			Temperature              float64 `json:"temperature"`
+			WeatherCode              int     `json:"weatherCode"`
+			PrecipitationProbability int     `json:"precipitationProbability"`
+			TemperatureApparent      float64 `json:"temperatureApparent"`
 		} `json:"values"`
 	} `json:"data"`
 }

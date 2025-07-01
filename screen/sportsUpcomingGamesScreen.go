@@ -79,8 +79,12 @@ func (s *SportsUpcomingGamesScreen) GetPreferredTransition() transition.Transiti
 
 func (s *SportsUpcomingGamesScreen) SetState(state ScreenState) {
 	s.State = state
-	if state == StateDisplayed {
+
+	switch state {
+	case StateDisplayed:
 		s.KeyFrames.Start()
+	case StateTransitionIn:
+		s.KeyFrames.Reset()
 	}
 }
 
@@ -146,8 +150,8 @@ func (s *SportsUpcomingGamesScreen) renderLogos() {
 }
 
 func (s *SportsUpcomingGamesScreen) renderText() {
-	if s.TeamHome != nil && s.TeamAway != nil {
-		teamNamesColor := s.KeyFrames.GetColor("teamNames")
+	teamNamesColor := s.KeyFrames.GetColor("teamNames")
+	if s.TeamHome != nil && s.TeamAway != nil && teamNamesColor.A > 0 {
 		s.Ctx.SetFontFace(s.Fonts.Size8x13B)
 		s.Ctx.SetColor(teamNamesColor)
 		s.Ctx.DrawStringAnchored(s.TeamAway.ShortName, 32, -3, 0.5, 1)
@@ -157,10 +161,12 @@ func (s *SportsUpcomingGamesScreen) renderText() {
 	}
 
 	dateAndTimeColor := s.KeyFrames.GetColor("dateAndTime")
-	s.Ctx.SetFontFace(s.Fonts.Size5x7)
-	s.Ctx.SetColor(dateAndTimeColor)
-	s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Mon")), 32, 1, 0.5, 1)
-	s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Jan 2")), 32, 8, 0.5, 1)
-	s.Ctx.DrawStringAnchored(s.Event.Time.Format("3:04"), 32, 15, 0.5, 1)
-	s.Ctx.DrawStringAnchored(s.Event.Time.Format("PM"), 32, 22, 0.5, 1)
+	if dateAndTimeColor.A > 0 {
+		s.Ctx.SetFontFace(s.Fonts.Size5x7)
+		s.Ctx.SetColor(dateAndTimeColor)
+		s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Mon")), 32, 1, 0.5, 1)
+		s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Jan 2")), 32, 8, 0.5, 1)
+		s.Ctx.DrawStringAnchored(s.Event.Time.Format("3:04"), 32, 15, 0.5, 1)
+		s.Ctx.DrawStringAnchored(s.Event.Time.Format("PM"), 32, 22, 0.5, 1)
+	}
 }

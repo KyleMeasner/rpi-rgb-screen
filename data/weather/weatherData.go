@@ -3,8 +3,10 @@ package weather
 import "time"
 
 type CurrentWeather struct {
-	Temperature float64
-	WeatherCode int
+	Temperature              float64
+	WeatherCode              int
+	PrecipitationProbability int
+	FeelsLike                float64
 }
 
 type WeatherForecast struct {
