@@ -13,6 +13,10 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Rate limits:
+// 30 requests per minute
+// https://www.thesportsdb.com/documentation#rate_limit
+
 const baseUrl = "https://www.thesportsdb.com/api/v1/json/123"
 
 type TheSportsDbClient struct {

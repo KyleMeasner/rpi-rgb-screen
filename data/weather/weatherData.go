@@ -1,6 +1,9 @@
 package weather
 
-import "time"
+import (
+	"rpi-rgb-screen/utils"
+	"time"
+)
 
 type CurrentWeather struct {
 	Temperature              float64
@@ -25,21 +28,22 @@ type WeatherData interface {
 
 type WeatherDataManager struct {
 	TomorrowIoClient *TomorrowIoClient
-	CurrentWeather   map[string]*CurrentWeather
-	Forecast         map[string][]*WeatherForecast
+	CurrentWeather   *utils.ExpirableMap[string, *CurrentWeather]
+	Forecast         *utils.ExpirableMap[string, []*WeatherForecast]
 }
 
 func NewWeatherData() WeatherData {
 	return &WeatherDataManager{
 		TomorrowIoClient: NewTomorrowIoClient(),
-		CurrentWeather:   map[string]*CurrentWeather{},
-		Forecast:         map[string][]*WeatherForecast{},
+		CurrentWeather:   utils.NewExpirableMap[string, *CurrentWeather](time.Minute * 15),
+		Forecast:         utils.NewExpirableMap[string, []*WeatherForecast](time.Minute * 15),
 	}
 }
 
 func (w *WeatherDataManager) GetCurrentWeather(location string) *CurrentWeather {
-	if currentWeather, ok := w.CurrentWeather[location]; ok {
-		return currentWeather
+	cachedCurrentWeather := w.CurrentWeather.Get(location)
+	if cachedCurrentWeather != nil {
+		return *cachedCurrentWeather
 	}
 
 	currentWeather := w.TomorrowIoClient.GetCurrentWeather(location)
@@ -47,13 +51,14 @@ func (w *WeatherDataManager) GetCurrentWeather(location string) *CurrentWeather 
 		return nil
 	}
 
-	w.CurrentWeather[location] = currentWeather
+	w.CurrentWeather.Set(location, currentWeather)
 	return currentWeather
 }
 
 func (w *WeatherDataManager) GetForecast(location string) []*WeatherForecast {
-	if forecast, ok := w.Forecast[location]; ok {
-		return forecast
+	cachedForecast := w.Forecast.Get(location)
+	if cachedForecast != nil {
+		return *cachedForecast
 	}
 
 	forecast := w.TomorrowIoClient.GetForecast(location)
@@ -61,6 +66,6 @@ func (w *WeatherDataManager) GetForecast(location string) []*WeatherForecast {
 		return nil
 	}
 
-	w.Forecast[location] = forecast
+	w.Forecast.Set(location, forecast)
 	return forecast
 }

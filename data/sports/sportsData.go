@@ -3,6 +3,7 @@ package sports
 import (
 	"image"
 	"rpi-rgb-screen/constants"
+	"rpi-rgb-screen/utils"
 	"slices"
 	"time"
 )
@@ -38,39 +39,39 @@ type SportsData interface {
 
 type SportsDataManager struct {
 	TheSportsDbClient *TheSportsDbClient
-	Events            map[int]map[int]*Event
-	Leagues           map[int]*League
-	Teams             map[string]*Team
-	Logos             map[string]image.Image
+	Events            *utils.ExpirableMap[int, map[int]*Event]
+	Leagues           *utils.ExpirableMap[int, *League]
+	Teams             *utils.ExpirableMap[string, *Team]
+	Logos             *utils.ExpirableMap[string, image.Image]
 }
 
 func NewSportsData() SportsData {
 	return &SportsDataManager{
 		TheSportsDbClient: NewTheSportsDbClient(),
-		Events:            map[int]map[int]*Event{},
-		Leagues:           map[int]*League{},
-		Teams:             map[string]*Team{},
-		Logos:             map[string]image.Image{},
+		Events:            utils.NewExpirableMap[int, map[int]*Event](time.Hour),
+		Leagues:           utils.NewExpirableMap[int, *League](time.Hour),
+		Teams:             utils.NewExpirableMap[string, *Team](time.Hour * 24),
+		Logos:             utils.NewExpirableMap[string, image.Image](time.Hour * 24),
 	}
 }
 
 func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
-	_, ok := s.Events[leagueId]
-	if !ok {
-		s.Events[leagueId] = map[int]*Event{}
+	if s.Events.Get(leagueId) == nil {
+		s.Events.Set(leagueId, map[int]*Event{})
 	}
 
-	if len(s.Events[leagueId]) == 0 {
+	events := *s.Events.Get(leagueId)
+	if len(events) == 0 {
 		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
 			nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
 			if nextGame != nil {
-				s.Events[leagueId][nextGame.Id] = nextGame
+				events[nextGame.Id] = nextGame
 			}
 		}
 	}
 
 	eventsSlice := []*Event{}
-	for _, event := range s.Events[leagueId] {
+	for _, event := range events {
 		eventsSlice = append(eventsSlice, event)
 	}
 
@@ -82,8 +83,9 @@ func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
 }
 
 func (s *SportsDataManager) GetLeague(leagueId int) *League {
-	if league, ok := s.Leagues[leagueId]; ok {
-		return league
+	cachedLeague := s.Leagues.Get(leagueId)
+	if cachedLeague != nil {
+		return *cachedLeague
 	}
 
 	league := s.TheSportsDbClient.GetLeague(leagueId)
@@ -91,13 +93,14 @@ func (s *SportsDataManager) GetLeague(leagueId int) *League {
 		return nil
 	}
 
-	s.Leagues[leagueId] = league
+	s.Leagues.Set(leagueId, league)
 	return league
 }
 
 func (s *SportsDataManager) GetTeam(teamName string) *Team {
-	if team, ok := s.Teams[teamName]; ok {
-		return team
+	cachedTeam := s.Teams.Get(teamName)
+	if cachedTeam != nil {
+		return *cachedTeam
 	}
 
 	team := s.TheSportsDbClient.GetTeam(teamName)
@@ -107,13 +110,14 @@ func (s *SportsDataManager) GetTeam(teamName string) *Team {
 
 	team.ShortName = constants.TEAM_SHORT_NAMES[team.Id]
 
-	s.Teams[teamName] = team
+	s.Teams.Set(teamName, team)
 	return team
 }
 
 func (s *SportsDataManager) GetLogo(logoUrl string) image.Image {
-	if logo, ok := s.Logos[logoUrl]; ok {
-		return logo
+	cachedLogo := s.Logos.Get(logoUrl)
+	if cachedLogo != nil {
+		return *cachedLogo
 	}
 
 	logo := s.TheSportsDbClient.GetLogo(logoUrl)
@@ -121,6 +125,6 @@ func (s *SportsDataManager) GetLogo(logoUrl string) image.Image {
 		return nil
 	}
 
-	s.Logos[logoUrl] = logo
+	s.Logos.Set(logoUrl, logo)
 	return logo
 }

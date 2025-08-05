@@ -11,6 +11,12 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// Rate limits:
+// 500 requests per day
+// 25 requests per hour
+// 3 requests per second
+// https://support.tomorrow.io/hc/en-us/articles/20273728362644-Free-API-Plan-Rate-Limits
+
 const baseUrl = "https://api.tomorrow.io/v4"
 
 type TomorrowIoClient struct {
