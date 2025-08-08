@@ -13,9 +13,8 @@ import (
 )
 
 type ScreenManager struct {
-	Screens          [][]screen.Screen
+	ScreenGroups     []*ScreenGroup
 	ScreenGroupIndex int
-	ScreenIndex      int
 	Canvas           *rgbmatrix.Canvas
 	DataManager      *data.DataManager
 	Fonts            *fonts.Fonts
@@ -23,48 +22,66 @@ type ScreenManager struct {
 
 func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager *data.DataManager) *ScreenManager {
 	return &ScreenManager{
-		Screens:     [][]screen.Screen{},
-		Canvas:      canvas,
-		DataManager: dataManager,
-		Fonts:       fonts,
+		ScreenGroups: []*ScreenGroup{},
+		Canvas:       canvas,
+		DataManager:  dataManager,
+		Fonts:        fonts,
 	}
 }
 
 func (s *ScreenManager) Initialize() {
-	s.Screens = [][]screen.Screen{
-		{screen.NewLoadingScreen(s.Fonts)},
+	s.ScreenGroups = []*ScreenGroup{
+		NewScreenGroup(s.initializeLoadingScreen),
+		NewScreenGroup(s.initializeWeatherScreens),
 	}
-	s.initializeWeatherScreens()
-	go s.initializeSportsLeagues()
-}
 
-func (s *ScreenManager) initializeSportsLeagues() {
 	for _, leagueId := range constants.LEAGUES {
-		events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
-		if len(events) == 0 {
-			return
+		initFunction := func() []screen.Screen {
+			return s.initializeSportsLeague(leagueId)
 		}
+		s.ScreenGroups = append(s.ScreenGroups, NewScreenGroup(initFunction))
+	}
 
-		screenGroup := []screen.Screen{}
-		screenGroup = append(screenGroup, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
-		for _, event := range events {
-			screenGroup = append(screenGroup, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
+	for i, screenGroup := range s.ScreenGroups {
+		// First two screen groups initialize quickly
+		if i < 2 {
+			screenGroup.Initialize()
+		} else {
+			go screenGroup.Initialize()
 		}
-		s.Screens = append(s.Screens, screenGroup)
 	}
 }
 
-func (s *ScreenManager) initializeWeatherScreens() {
-	currentWeatherScreen := screen.NewWeatherCurrentScreen(s.Fonts, s.DataManager.WeatherData)
-	forecastScreen := screen.NewWeatherForecastScreen(s.Fonts, s.DataManager.WeatherData)
-	s.Screens = append(s.Screens, []screen.Screen{currentWeatherScreen, forecastScreen})
+func (s *ScreenManager) initializeLoadingScreen() []screen.Screen {
+	return []screen.Screen{screen.NewLoadingScreen(s.Fonts)}
+}
+
+func (s *ScreenManager) initializeSportsLeague(leagueId int) []screen.Screen {
+	events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
+	if len(events) == 0 {
+		return []screen.Screen{}
+	}
+
+	screens := []screen.Screen{}
+	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
+	for _, event := range events {
+		screens = append(screens, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
+	}
+	return screens
+}
+
+func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
+	return []screen.Screen{
+		screen.NewWeatherCurrentScreen(s.Fonts, s.DataManager.WeatherData),
+		screen.NewWeatherForecastScreen(s.Fonts, s.DataManager.WeatherData),
+	}
 }
 
 func (s *ScreenManager) Run() {
 	s.ScreenGroupIndex = 0
-	s.ScreenIndex = -1
 
 	// Prep the first screen before we start the loop
+	s.ScreenGroups[s.ScreenGroupIndex].Initialize()
 	currScreen := s.GetNextScreen()
 	<-currScreen.Refresh()
 
@@ -88,16 +105,24 @@ func (s *ScreenManager) Run() {
 }
 
 func (s *ScreenManager) GetNextScreen() screen.Screen {
-	screenGroup := s.Screens[s.ScreenGroupIndex]
-	if s.ScreenIndex < len(screenGroup)-1 {
-		s.ScreenIndex++
-	} else {
-		s.ScreenGroupIndex = (s.ScreenGroupIndex + 1) % len(s.Screens)
-		s.ScreenIndex = 0
-		screenGroup = s.Screens[s.ScreenGroupIndex]
+	currScreenGroup := s.ScreenGroups[s.ScreenGroupIndex]
+	nextScreen := currScreenGroup.GetNextScreen()
+	if nextScreen != nil {
+		return nextScreen
 	}
 
-	return screenGroup[s.ScreenIndex]
+	for {
+		// 1. Reset the current screen group for next time
+		go currScreenGroup.Initialize()
+
+		// 2. Get the first screen from the next screen group
+		s.ScreenGroupIndex = (s.ScreenGroupIndex + 1) % len(s.ScreenGroups)
+		nextScreenGroup := s.ScreenGroups[s.ScreenGroupIndex]
+		screen := nextScreenGroup.GetNextScreen()
+		if screen != nil {
+			return screen
+		}
+	}
 }
 
 func (s *ScreenManager) DisplayScreen(screen screen.Screen, nextScreenReadyChan <-chan bool) {
