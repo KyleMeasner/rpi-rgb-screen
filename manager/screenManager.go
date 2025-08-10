@@ -31,7 +31,6 @@ func NewScreenManager(fonts *fonts.Fonts, canvas *rgbmatrix.Canvas, dataManager 
 
 func (s *ScreenManager) Initialize() {
 	s.ScreenGroups = []*ScreenGroup{
-		NewScreenGroup(s.initializeLoadingScreen),
 		NewScreenGroup(s.initializeClockScreen),
 		NewScreenGroup(s.initializeWeatherScreens),
 	}
@@ -52,10 +51,6 @@ func (s *ScreenManager) Initialize() {
 
 func (s *ScreenManager) initializeClockScreen() []screen.Screen {
 	return []screen.Screen{screen.NewClockScreen(s.Fonts)}
-}
-
-func (s *ScreenManager) initializeLoadingScreen() []screen.Screen {
-	return []screen.Screen{screen.NewLoadingScreen(s.Fonts)}
 }
 
 func (s *ScreenManager) initializeSportsLeague(leagueId int) []screen.Screen {
