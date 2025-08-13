@@ -59,11 +59,19 @@ type WeatherTimelinesResponse struct {
 			Intervals []struct {
 				StartTime string `json:"startTime"`
 				Values    struct {
+					// Forecast values
 					TemperatureMin float64 `json:"temperatureMin"`
 					TemperatureMax float64 `json:"temperatureMax"`
 					WeatherCode    int     `json:"weatherCodeFullDay"`
 					SunriseTime    string  `json:"sunriseTime"`
 					SunsetTime     string  `json:"sunsetTime"`
+					// Hourly values
+					PrecipitationProbability float64 `json:"precipitationProbability"`
+					UVIndex                  float64 `json:"uvIndex"`
+					WindSpeed                float64 `json:"windSpeed"`
+					WindGust                 float64 `json:"windGust"`
+					Temperature              float64 `json:"temperature"`
+					TemperatureApparent      float64 `json:"temperatureApparent"`
 				} `json:"values"`
 			} `json:"intervals"`
 		} `json:"timelines"`
@@ -87,9 +95,51 @@ func (t *TomorrowIoClient) GetCurrentWeather(location string) *CurrentWeather {
 	}
 
 	return &CurrentWeather{
-		Temperature: realtimeWeatherResponse.Data.Values.Temperature,
-		WeatherCode: realtimeWeatherResponse.Data.Values.WeatherCode,
+		Temperature:              realtimeWeatherResponse.Data.Values.Temperature,
+		WeatherCode:              realtimeWeatherResponse.Data.Values.WeatherCode,
+		PrecipitationProbability: realtimeWeatherResponse.Data.Values.PrecipitationProbability,
+		FeelsLike:                realtimeWeatherResponse.Data.Values.TemperatureApparent,
 	}
+}
+
+func (t *TomorrowIoClient) GetHourlyWeather(location string) []*HourlyWeather {
+	url := fmt.Sprintf("%s/timelines?apikey=%s", baseUrl, config.Config.TomorrowIoApiKey)
+
+	requestPayload := WeatherTimelinesRequest{
+		Location:  location,
+		Fields:    []string{"precipitationProbability", "uvIndex", "windSpeed", "windGust", "temperature", "temperatureApparent"},
+		Units:     "metric",
+		Timesteps: []string{"1h"},
+		StartTime: fmt.Sprintf("nowMinus%dh", time.Now().Hour()),
+		EndTime:   fmt.Sprintf("nowPlus%dh", 23-time.Now().Hour()),
+	}
+
+	var weatherTimelinesResponse WeatherTimelinesResponse
+	err := utils.PostAndUnmarshal(url, "application/json", requestPayload, &weatherTimelinesResponse, t.RateLimiter)
+	if err != nil {
+		log.Printf("Failed to get weather timeline for location '%s'. Error: %s", location, err)
+		return nil
+	}
+	if len(weatherTimelinesResponse.Data.Timelines) == 0 {
+		log.Printf("Failed to get weather timeline for location '%s'. No results found.", location)
+		return nil
+	}
+
+	hourlyWeather := make([]*HourlyWeather, 24)
+	for _, interval := range weatherTimelinesResponse.Data.Timelines[0].Intervals {
+		date, _ := time.Parse("2006-01-02T15:04:05Z", interval.StartTime)
+		hour := date.Local().Hour()
+		hourlyWeather[hour] = &HourlyWeather{
+			PrecipitationProbability: interval.Values.PrecipitationProbability,
+			UVIndex:                  interval.Values.UVIndex,
+			WindSpeed:                interval.Values.WindSpeed,
+			WindGust:                 interval.Values.WindGust,
+			Temperature:              interval.Values.Temperature,
+			FeelsLike:                interval.Values.TemperatureApparent,
+		}
+	}
+
+	return hourlyWeather
 }
 
 func (t *TomorrowIoClient) GetForecast(location string) []*WeatherForecast {

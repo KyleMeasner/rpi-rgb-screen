@@ -12,6 +12,15 @@ type CurrentWeather struct {
 	FeelsLike                float64
 }
 
+type HourlyWeather struct {
+	PrecipitationProbability float64
+	UVIndex                  float64
+	WindSpeed                float64
+	WindGust                 float64
+	Temperature              float64
+	FeelsLike                float64
+}
+
 type WeatherForecast struct {
 	Date           time.Time
 	TemperatureMin float64
@@ -23,12 +32,14 @@ type WeatherForecast struct {
 
 type WeatherData interface {
 	GetCurrentWeather(location string) *CurrentWeather
+	GetHourlyWeather(location string) []*HourlyWeather
 	GetForecast(location string) []*WeatherForecast
 }
 
 type WeatherDataManager struct {
 	TomorrowIoClient *TomorrowIoClient
 	CurrentWeather   *utils.ExpirableMap[string, *CurrentWeather]
+	HourlyWeather    *utils.ExpirableMap[string, []*HourlyWeather]
 	Forecast         *utils.ExpirableMap[string, []*WeatherForecast]
 }
 
@@ -36,6 +47,7 @@ func NewWeatherData() WeatherData {
 	return &WeatherDataManager{
 		TomorrowIoClient: NewTomorrowIoClient(),
 		CurrentWeather:   utils.NewExpirableMap[string, *CurrentWeather](time.Minute * 15),
+		HourlyWeather:    utils.NewExpirableMap[string, []*HourlyWeather](time.Minute * 15),
 		Forecast:         utils.NewExpirableMap[string, []*WeatherForecast](time.Minute * 15),
 	}
 }
@@ -53,6 +65,21 @@ func (w *WeatherDataManager) GetCurrentWeather(location string) *CurrentWeather 
 
 	w.CurrentWeather.Set(location, currentWeather)
 	return currentWeather
+}
+
+func (w *WeatherDataManager) GetHourlyWeather(location string) []*HourlyWeather {
+	cachedHourlyWeather := w.HourlyWeather.Get(location)
+	if cachedHourlyWeather != nil {
+		return *cachedHourlyWeather
+	}
+
+	hourlyWeather := w.TomorrowIoClient.GetHourlyWeather(location)
+	if len(hourlyWeather) < 24 {
+		return nil
+	}
+
+	w.HourlyWeather.Set(location, hourlyWeather)
+	return hourlyWeather
 }
 
 func (w *WeatherDataManager) GetForecast(location string) []*WeatherForecast {
