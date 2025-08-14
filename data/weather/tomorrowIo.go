@@ -66,8 +66,8 @@ type WeatherTimelinesResponse struct {
 					SunriseTime    string  `json:"sunriseTime"`
 					SunsetTime     string  `json:"sunsetTime"`
 					// Hourly values
-					PrecipitationProbability float64 `json:"precipitationProbability"`
-					UVIndex                  float64 `json:"uvIndex"`
+					PrecipitationProbability int     `json:"precipitationProbability"`
+					UVIndex                  int     `json:"uvIndex"`
 					WindSpeed                float64 `json:"windSpeed"`
 					WindGust                 float64 `json:"windGust"`
 					Temperature              float64 `json:"temperature"`

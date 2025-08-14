@@ -26,13 +26,13 @@ type WeatherForecastScreen struct {
 }
 
 func NewWeatherForecastScreen(fonts *fonts.Fonts, weatherData weather.WeatherData) Screen {
-	keyFrames := animation.NewKeyFrames(20 * time.Second)
+	keyFrames := animation.NewKeyFrames(30 * time.Second)
 
 	keyFrames.AddNumber("C", 255)
-	keyFrames.AddNumberTransitions("C", animation.AnimatedNumberTransition{Offset: 10 * time.Second, Duration: 1000 * time.Millisecond, EndValue: 0})
+	keyFrames.AddNumberTransitions("C", animation.AnimatedNumberTransition{Offset: 14500 * time.Millisecond, Duration: 1000 * time.Millisecond, EndValue: 0})
 
 	keyFrames.AddNumber("F", 0)
-	keyFrames.AddNumberTransitions("F", animation.AnimatedNumberTransition{Offset: 10 * time.Second, Duration: 1000 * time.Millisecond, EndValue: 255})
+	keyFrames.AddNumberTransitions("F", animation.AnimatedNumberTransition{Offset: 14500 * time.Millisecond, Duration: 1000 * time.Millisecond, EndValue: 255})
 
 	return &WeatherForecastScreen{
 		State:       StateNotDisplayed,

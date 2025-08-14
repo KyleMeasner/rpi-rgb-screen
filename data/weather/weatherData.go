@@ -13,8 +13,8 @@ type CurrentWeather struct {
 }
 
 type HourlyWeather struct {
-	PrecipitationProbability float64
-	UVIndex                  float64
+	PrecipitationProbability int
+	UVIndex                  int
 	WindSpeed                float64
 	WindGust                 float64
 	Temperature              float64

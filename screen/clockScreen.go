@@ -25,7 +25,7 @@ func NewClockScreen(fonts *fonts.Fonts) Screen {
 	return &ClockScreen{
 		State:     StateNotDisplayed,
 		Ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
-		KeyFrames: animation.NewKeyFrames(10 * time.Second),
+		KeyFrames: animation.NewKeyFrames(30 * time.Second),
 		Fonts:     fonts,
 	}
 }

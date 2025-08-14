@@ -125,12 +125,21 @@ func (s *WeatherCurrentScreen) renderPrecipitationGraph(opacity uint8) {
 	s.Ctx.SetColor(color.RGBA{255, 255, 255, opacity})
 	s.Ctx.DrawStringAnchored("POP", 1, 29, 0, 0)
 
-	s.Ctx.SetColor(color.RGBA{0x22, 0x22, 0x22, opacity})
+	s.Ctx.SetColor(color.RGBA{0x22, 0x22, 0x22, 255})
 	for x := range 48 {
 		s.Ctx.SetPixel(14+x, 31)
 	}
 
 	currentHour := time.Now().Hour()
+
+	// Show highlight
+	s.Ctx.SetColor(color.RGBA{255, 0, 0, 255})
+	s.Ctx.SetPixel(14+currentHour*2, 31)
+	s.Ctx.SetPixel(15+currentHour*2, 31)
+
+	if opacity < 255 {
+		return
+	}
 
 	for x, hourlyWeather := range s.HourlyWeather {
 		if x < currentHour {
@@ -138,14 +147,9 @@ func (s *WeatherCurrentScreen) renderPrecipitationGraph(opacity uint8) {
 		} else if x > currentHour {
 			s.Ctx.SetColor(color.RGBA{0, 0, 255, opacity})
 		} else {
-			// Show highlight
-			s.Ctx.SetColor(color.RGBA{255, 0, 0, opacity})
-			s.Ctx.SetPixel(14+x*2, 31)
-			s.Ctx.SetPixel(15+x*2, 31)
-
 			s.Ctx.SetColor(color.RGBA{0x97, 0xE7, 0xF5, opacity})
 		}
-		height := int(math.Round(hourlyWeather.PrecipitationProbability * 10))
+		height := int(math.Round(float64(hourlyWeather.PrecipitationProbability) / 10))
 		for y := range height {
 			s.Ctx.SetPixel(14+x*2, 30-y)
 			s.Ctx.SetPixel(15+x*2, 30-y)
@@ -162,12 +166,21 @@ func (s *WeatherCurrentScreen) renderUVIndexGraph(opacity uint8) {
 	s.Ctx.SetColor(color.RGBA{255, 255, 255, opacity})
 	s.Ctx.DrawStringAnchored("UV", 3, 29, 0, 0)
 
-	s.Ctx.SetColor(color.RGBA{0x22, 0x22, 0x22, opacity})
+	s.Ctx.SetColor(color.RGBA{0x22, 0x22, 0x22, 255})
 	for x := range 48 {
 		s.Ctx.SetPixel(14+x, 31)
 	}
 
 	currentHour := time.Now().Hour()
+
+	// Show highlight
+	s.Ctx.SetColor(color.RGBA{255, 0, 0, 255})
+	s.Ctx.SetPixel(14+currentHour*2, 31)
+	s.Ctx.SetPixel(15+currentHour*2, 31)
+
+	if opacity < 255 {
+		return
+	}
 
 	for x, hourlyWeather := range s.HourlyWeather {
 		if x < currentHour {
@@ -175,17 +188,9 @@ func (s *WeatherCurrentScreen) renderUVIndexGraph(opacity uint8) {
 		} else if x > currentHour {
 			s.Ctx.SetColor(color.RGBA{0xFC, 0xB4, 0x04, opacity})
 		} else {
-			// Show highlight
-			s.Ctx.SetColor(color.RGBA{255, 0, 0, opacity})
-			s.Ctx.SetPixel(14+x*2, 31)
-			s.Ctx.SetPixel(15+x*2, 31)
-
 			s.Ctx.SetColor(color.RGBA{0xFF, 0xF8, 0x04, opacity})
 		}
-		height := int(math.Round(hourlyWeather.UVIndex))
-		if height > 10 {
-			height = 10
-		}
+		height := int(math.Min(float64(hourlyWeather.UVIndex), 10))
 		for y := range height {
 			s.Ctx.SetPixel(14+x*2, 30-y)
 			s.Ctx.SetPixel(15+x*2, 30-y)
