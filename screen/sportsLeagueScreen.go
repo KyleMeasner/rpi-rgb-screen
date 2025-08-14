@@ -59,7 +59,7 @@ func (s *SportsLeagueScreen) Refresh() chan bool {
 			s.League = s.SportsData.GetLeague(s.LeagueId)
 		}
 
-		if s.LeagueLogo == nil {
+		if s.LeagueLogo == nil && s.League != nil {
 			logo := s.SportsData.GetLogo(s.League.LogoUrl)
 			if logo != nil {
 				s.LeagueLogo = utils.ResizeImage(logo, 32)
