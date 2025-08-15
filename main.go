@@ -43,7 +43,7 @@ func main() {
 	matrixConfig.Cols = constants.SCREEN_WIDTH
 	matrixConfig.Brightness = 100
 	matrixConfig.HardwareMapping = "adafruit-hat-pwm"
-	matrixConfig.ShowRefreshRate = true
+	matrixConfig.ShowRefreshRate = false
 
 	matrix, err := rgbmatrix.NewRGBLedMatrix(matrixConfig)
 	if err != nil {
