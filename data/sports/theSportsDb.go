@@ -41,7 +41,7 @@ type TeamSearchResponse struct {
 	} `json:"teams"`
 }
 
-type EventSearchResponse struct {
+type NextEventSearchResponse struct {
 	Events []struct {
 		Id           string `json:"idEvent"`
 		Name         string `json:"strEvent"`
@@ -49,6 +49,18 @@ type EventSearchResponse struct {
 		AwayTeamName string `json:"strAwayTeam"`
 		Timestamp    string `json:"strTimestamp"`
 	} `json:"events"`
+}
+
+type LastEventSearchResponse struct {
+	Events []struct {
+		Id           string `json:"idEvent"`
+		Name         string `json:"strEvent"`
+		HomeTeamName string `json:"strHomeTeam"`
+		AwayTeamName string `json:"strAwayTeam"`
+		Timestamp    string `json:"strTimestamp"`
+		HomeScore    string `json:"intHomeScore"`
+		AwayScore    string `json:"intAwayScore"`
+	} `json:"results"`
 }
 
 func NewTheSportsDbClient() *TheSportsDbClient {
@@ -127,19 +139,19 @@ func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 }
 
 func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
-	var eventSearchResponse EventSearchResponse
+	var nextEventSearchResponse NextEventSearchResponse
 	url := fmt.Sprintf("%s/eventsnext.php?id=%d", baseUrl, teamId)
-	err := utils.GetAndUnmarshal(url, &eventSearchResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, &nextEventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
 	}
-	if len(eventSearchResponse.Events) < 1 {
+	if len(nextEventSearchResponse.Events) < 1 {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. No results found.", teamId)
 		return nil
 	}
 
-	rawEvent := eventSearchResponse.Events[0]
+	rawEvent := nextEventSearchResponse.Events[0]
 	eventId, err := strconv.Atoi(rawEvent.Id)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -157,5 +169,51 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 		HomeTeamName: rawEvent.HomeTeamName,
 		AwayTeamName: rawEvent.AwayTeamName,
 		Time:         eventTime.Local(),
+	}
+}
+
+func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
+	var lastEventSearchResponse LastEventSearchResponse
+	url := fmt.Sprintf("%s/eventslast.php?id=%d", baseUrl, teamId)
+	err := utils.GetAndUnmarshal(url, &lastEventSearchResponse, t.RateLimiter)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	if len(lastEventSearchResponse.Events) < 1 {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. No results found.", teamId)
+		return nil
+	}
+
+	rawEvent := lastEventSearchResponse.Events[0]
+	eventId, err := strconv.Atoi(rawEvent.Id)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	homeScore, err := strconv.Atoi(rawEvent.HomeScore)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	awayScore, err := strconv.Atoi(rawEvent.AwayScore)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+
+	return &Event{
+		Id:           eventId,
+		Name:         rawEvent.Name,
+		HomeTeamName: rawEvent.HomeTeamName,
+		AwayTeamName: rawEvent.AwayTeamName,
+		Time:         eventTime.Local(),
+		HomeScore:    homeScore,
+		AwayScore:    awayScore,
 	}
 }

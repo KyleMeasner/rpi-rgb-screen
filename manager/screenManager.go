@@ -39,9 +39,20 @@ func (s *ScreenManager) Initialize() {
 		screenGroup.Initialize()
 	}
 
+	// Upcoming games screens
 	for _, leagueId := range constants.LEAGUES {
 		initFunction := func() []screen.Screen {
-			return s.initializeSportsLeague(leagueId)
+			return s.initializeSportsLeagueUpcomingGames(leagueId)
+		}
+		screenGroup := NewScreenGroup(initFunction)
+		go screenGroup.Initialize()
+		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
+	}
+
+	// Past games screens
+	for _, leagueId := range constants.LEAGUES {
+		initFunction := func() []screen.Screen {
+			return s.initializeSportsLeaguePastGames(leagueId)
 		}
 		screenGroup := NewScreenGroup(initFunction)
 		go screenGroup.Initialize()
@@ -53,7 +64,7 @@ func (s *ScreenManager) initializeClockScreen() []screen.Screen {
 	return []screen.Screen{screen.NewClockScreen(s.Fonts)}
 }
 
-func (s *ScreenManager) initializeSportsLeague(leagueId int) []screen.Screen {
+func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []screen.Screen {
 	events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
 	if len(events) == 0 {
 		return []screen.Screen{}
@@ -63,6 +74,20 @@ func (s *ScreenManager) initializeSportsLeague(leagueId int) []screen.Screen {
 	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
 	for _, event := range events {
 		screens = append(screens, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
+	}
+	return screens
+}
+
+func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.Screen {
+	events := s.DataManager.SportsData.GetPastEventsForLeague(leagueId)
+	if len(events) == 0 {
+		return []screen.Screen{}
+	}
+
+	screens := []screen.Screen{}
+	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
+	for _, event := range events {
+		screens = append(screens, screen.NewSportsScoresScreen(s.Fonts, s.DataManager.SportsData, event))
 	}
 	return screens
 }
