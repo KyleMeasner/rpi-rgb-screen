@@ -68,15 +68,15 @@ func (s *ClockScreen) Render() (image.Image, bool) {
 	s.Ctx.SetColor(color.RGBA{0, 255, 0, 255})
 	hoursPercentage := (float64(hours)*60 + float64(minutes)) / 720
 	hoursX, hoursY := positionOnCircle(hoursPercentage)
-	s.drawLine(15, 15, hoursX, hoursY, 8)
+	s.drawLine(15, 15, hoursX, hoursY, 10)
 
 	s.Ctx.SetColor(color.RGBA{0, 0, 255, 255})
 	minutesX, minutesY := positionOnCircle(float64(minutes) / 60)
-	s.drawLine(15, 15, minutesX, minutesY, 11)
+	s.drawLine(15, 15, minutesX, minutesY, 13)
 
 	s.Ctx.SetColor(color.RGBA{255, 0, 0, 255})
 	secondsX, secondsY := positionOnCircle(float64(seconds) / 60)
-	s.drawLine(15, 15, secondsX, secondsY, 13)
+	s.drawLine(15, 15, secondsX, secondsY, 15)
 
 	// Date and time on the right
 	s.Ctx.SetColor(color.White)
@@ -96,11 +96,44 @@ func (s *ClockScreen) Render() (image.Image, bool) {
 }
 
 func (s *ClockScreen) drawLine(xStart, yStart, xOffset, yOffset float64, length int) {
+	points := [][]int{}
 	for i := range length {
 		x := int(math.Round(xStart + xOffset*float64(i)))
 		y := int(math.Round(yStart + yOffset*float64(i)))
-		s.Ctx.SetPixel(x, y)
+		points = append(points, []int{x, y})
 	}
+
+	i := 0
+	for i < len(points) {
+		if hasHorizontalAdjacent(points, i) && hasVerticalAdjacent(points, i) {
+			points = append(points[:i], points[i+1:]...)
+		} else {
+			s.Ctx.SetPixel(points[i][0], points[i][1])
+			i++
+		}
+	}
+}
+
+func hasHorizontalAdjacent(points [][]int, i int) bool {
+	if i == 0 || i == len(points)-1 {
+		return false
+	}
+
+	prevAdjacent := points[i-1][1] == points[i][1] && math.Abs(float64(points[i-1][0]-points[i][0])) == 1
+	nextAdjacent := points[i+1][1] == points[i][1] && math.Abs(float64(points[i+1][0]-points[i][0])) == 1
+
+	return prevAdjacent || nextAdjacent
+}
+
+func hasVerticalAdjacent(points [][]int, i int) bool {
+	if i == 0 || i == len(points)-1 {
+		return false
+	}
+
+	prevAdjacent := points[i-1][0] == points[i][0] && math.Abs(float64(points[i-1][1]-points[i][1])) == 1
+	nextAdjacent := points[i+1][0] == points[i][0] && math.Abs(float64(points[i+1][1]-points[i][1])) == 1
+
+	return prevAdjacent || nextAdjacent
 }
 
 func positionOnCircle(percentage float64) (float64, float64) {
