@@ -3,6 +3,7 @@ package manager
 import (
 	"image"
 	"image/draw"
+	"log"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
@@ -35,6 +36,7 @@ func (s *ScreenManager) Initialize() {
 		NewScreenGroup(s.initializeWeatherScreens),
 	}
 
+	// Initialize first two screen groups
 	for _, screenGroup := range s.ScreenGroups {
 		screenGroup.Initialize()
 	}
@@ -45,7 +47,6 @@ func (s *ScreenManager) Initialize() {
 			return s.initializeSportsLeagueUpcomingGames(leagueId)
 		}
 		screenGroup := NewScreenGroup(initFunction)
-		go screenGroup.Initialize()
 		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
 	}
 
@@ -55,16 +56,23 @@ func (s *ScreenManager) Initialize() {
 			return s.initializeSportsLeaguePastGames(leagueId)
 		}
 		screenGroup := NewScreenGroup(initFunction)
-		go screenGroup.Initialize()
 		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
 	}
+
+	go func() {
+		for _, screenGroup := range s.ScreenGroups[2:] { // Skip the first two (clock and weather)
+			screenGroup.Initialize()
+		}
+	}()
 }
 
 func (s *ScreenManager) initializeClockScreen() []screen.Screen {
+	log.Printf("Initializing clock screen")
 	return []screen.Screen{screen.NewClockScreen(s.Fonts)}
 }
 
 func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []screen.Screen {
+	log.Printf("Initializing sports league %d upcoming games screen", leagueId)
 	events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
 	if len(events) == 0 {
 		return []screen.Screen{}
@@ -79,6 +87,7 @@ func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []scre
 }
 
 func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.Screen {
+	log.Printf("Initializing sports league %d past games screen", leagueId)
 	events := s.DataManager.SportsData.GetPastEventsForLeague(leagueId)
 	if len(events) == 0 {
 		return []screen.Screen{}
@@ -93,6 +102,7 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 }
 
 func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
+	log.Printf("Initializing weather screens")
 	return []screen.Screen{
 		screen.NewWeatherCurrentScreen(s.Fonts, s.DataManager.WeatherData),
 		screen.NewWeatherForecastScreen(s.Fonts, s.DataManager.WeatherData),

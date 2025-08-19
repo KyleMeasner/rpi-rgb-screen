@@ -69,7 +69,7 @@ func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
 	if len(events) == 0 {
 		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
 			nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
-			if nextGame != nil {
+			if nextGame != nil && time.Until(nextGame.Time) < time.Hour*24*7 { // Only include games within the next week
 				events[nextGame.Id] = nextGame
 			}
 		}
@@ -96,7 +96,7 @@ func (s *SportsDataManager) GetPastEventsForLeague(leagueId int) []*Event {
 	if len(events) == 0 {
 		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
 			lastGame := s.TheSportsDbClient.GetLastGameForTeam(teamId)
-			if lastGame != nil {
+			if lastGame != nil && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
 				events[lastGame.Id] = lastGame
 			}
 		}
