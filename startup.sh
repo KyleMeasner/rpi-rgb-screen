@@ -26,4 +26,4 @@ fi
 echo "Build completed successfully."
 
 echo "Starting up the app..."
-sudo rpi-rgb-screen --led-slowdown-gpio=4
+sudo ./rpi-rgb-screen --led-slowdown-gpio=4
