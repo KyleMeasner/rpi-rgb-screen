@@ -53,7 +53,7 @@ func NewSportsScoresScreen(fonts *fonts.Fonts, sportsData sports.SportsData, eve
 
 	keyFrames.AddColor("loserFade", color.RGBA{0, 0, 0, 0})
 	keyFrames.AddColorTransitions("loserFade",
-		animation.AnimatedColorTransition{Offset: 1500 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{0, 0, 0, 128}},
+		animation.AnimatedColorTransition{Offset: 1500 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{0, 0, 0, 192}},
 		animation.AnimatedColorTransition{Offset: 9250 * time.Millisecond, Duration: 500 * time.Millisecond, EndValue: color.RGBA{0, 0, 0, 0}},
 	)
 
