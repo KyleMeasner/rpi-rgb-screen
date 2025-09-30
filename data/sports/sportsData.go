@@ -24,6 +24,7 @@ type Team struct {
 
 type Event struct {
 	Id           int
+	LeagueId     int
 	Name         string
 	HomeTeamName string
 	AwayTeamName string
@@ -96,7 +97,7 @@ func (s *SportsDataManager) GetPastEventsForLeague(leagueId int) []*Event {
 	if len(events) == 0 {
 		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
 			lastGame := s.TheSportsDbClient.GetLastGameForTeam(teamId)
-			if lastGame != nil && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
+			if lastGame != nil && lastGame.LeagueId == leagueId && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
 				events[lastGame.Id] = lastGame
 			}
 		}

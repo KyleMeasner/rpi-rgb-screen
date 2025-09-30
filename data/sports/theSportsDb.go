@@ -44,6 +44,7 @@ type TeamSearchResponse struct {
 type NextEventSearchResponse struct {
 	Events []struct {
 		Id           string `json:"idEvent"`
+		LeagueId     string `json:"idLeague"`
 		Name         string `json:"strEvent"`
 		HomeTeamName string `json:"strHomeTeam"`
 		AwayTeamName string `json:"strAwayTeam"`
@@ -54,6 +55,7 @@ type NextEventSearchResponse struct {
 type LastEventSearchResponse struct {
 	Events []struct {
 		Id           string `json:"idEvent"`
+		LeagueId     string `json:"idLeague"`
 		Name         string `json:"strEvent"`
 		HomeTeamName string `json:"strHomeTeam"`
 		AwayTeamName string `json:"strAwayTeam"`
@@ -157,6 +159,11 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
 	}
+	leagueId, err := strconv.Atoi(rawEvent.LeagueId)
+	if err != nil {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
 	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -165,6 +172,7 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 
 	return &Event{
 		Id:           eventId,
+		LeagueId:     leagueId,
 		Name:         rawEvent.Name,
 		HomeTeamName: rawEvent.HomeTeamName,
 		AwayTeamName: rawEvent.AwayTeamName,
@@ -191,6 +199,11 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
 	}
+	leagueId, err := strconv.Atoi(rawEvent.LeagueId)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
 	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
 	if err != nil {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -209,6 +222,7 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 
 	return &Event{
 		Id:           eventId,
+		LeagueId:     leagueId,
 		Name:         rawEvent.Name,
 		HomeTeamName: rawEvent.HomeTeamName,
 		AwayTeamName: rawEvent.AwayTeamName,
