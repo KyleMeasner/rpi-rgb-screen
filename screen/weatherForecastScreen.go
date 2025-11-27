@@ -44,7 +44,7 @@ func NewWeatherForecastScreen(fonts *fonts.Fonts, weatherData weather.WeatherDat
 }
 
 func (s *WeatherForecastScreen) GetPreferredTransition() transition.Transition {
-	return transition.NewSlideInTransition()
+	return transition.NewSlideAndZoomTransition()
 }
 
 func (s *WeatherForecastScreen) SetState(state ScreenState) {

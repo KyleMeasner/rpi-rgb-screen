@@ -74,7 +74,7 @@ func NewSportsUpcomingGamesScreen(fonts *fonts.Fonts, sportsData sports.SportsDa
 }
 
 func (s *SportsUpcomingGamesScreen) GetPreferredTransition() transition.Transition {
-	return transition.NewSlideInTransition()
+	return transition.NewSlideAndZoomTransition()
 }
 
 func (s *SportsUpcomingGamesScreen) SetState(state ScreenState) {
@@ -102,13 +102,13 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 		if s.LogoHome == nil && s.TeamHome != nil {
 			logoHome := s.SportsData.GetLogo(s.TeamHome.LogoUrl)
 			if logoHome != nil {
-				s.LogoHome = utils.ResizeImage(logoHome, 32)
+				s.LogoHome = utils.ResizeImageSquare(logoHome, 32)
 			}
 		}
 		if s.LogoAway == nil && s.TeamAway != nil {
 			logoAway := s.SportsData.GetLogo(s.TeamAway.LogoUrl)
 			if logoAway != nil {
-				s.LogoAway = utils.ResizeImage(logoAway, 32)
+				s.LogoAway = utils.ResizeImageSquare(logoAway, 32)
 			}
 		}
 

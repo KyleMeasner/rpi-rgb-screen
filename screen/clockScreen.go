@@ -31,7 +31,7 @@ func NewClockScreen(fonts *fonts.Fonts) Screen {
 }
 
 func (s *ClockScreen) GetPreferredTransition() transition.Transition {
-	return transition.NewSlideInTransition()
+	return transition.NewSlideAndZoomTransition()
 }
 
 func (s *ClockScreen) SetState(state ScreenState) {

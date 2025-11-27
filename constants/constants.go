@@ -2,3 +2,5 @@ package constants
 
 const SCREEN_WIDTH = 64
 const SCREEN_HEIGHT = 32
+const SCREEN_MIDDLE_X = SCREEN_WIDTH / 2
+const SCREEN_MIDDLE_Y = SCREEN_HEIGHT / 2
