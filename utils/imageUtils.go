@@ -9,7 +9,7 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// Resizes the image to be contained in a square of newWidthOrHeight.
+// Resizes the image to be newWidth x newHeight pixels.
 func ResizeImage(image image.Image, newWidth, newHeight int) image.Image {
 	scaleFactorX := float64(newWidth) / float64(image.Bounds().Dx())
 	scaleFactorY := float64(newHeight) / float64(image.Bounds().Dy())

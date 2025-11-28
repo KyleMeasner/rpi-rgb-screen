@@ -3,7 +3,6 @@ package transition
 import (
 	"image"
 	"image/color"
-	"log"
 	"rpi-rgb-screen/animation"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/render"
@@ -67,7 +66,6 @@ func (s *SlideAndZoomTransition) Render() (image.Image, bool) {
 	renderedNewScreen, _ := s.NewScreen.Render()
 
 	scale := float64(s.KeyFrames.GetNumber("scale")) / 100
-	log.Printf("Scale: %f\n", scale)
 	if scale < 1 {
 		renderedOldScreen = utils.ResizeImage(renderedOldScreen, int(float64(constants.SCREEN_WIDTH)*scale), int(float64(constants.SCREEN_HEIGHT)*scale))
 		renderedNewScreen = utils.ResizeImage(renderedNewScreen, int(float64(constants.SCREEN_WIDTH)*scale), int(float64(constants.SCREEN_HEIGHT)*scale))

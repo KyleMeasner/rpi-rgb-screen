@@ -7,8 +7,9 @@ import (
 )
 
 type Configuration struct {
-	TomorrowIoApiKey string
-	Location         string
+	TomorrowIoApiKey string `json:"tomorrowIoApiKey"`
+	Location         string `json:"location"`
+	FavoriteTeams    []int  `json:"favoriteTeams"`
 }
 
 var Config *Configuration = &Configuration{}

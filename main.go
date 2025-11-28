@@ -83,7 +83,7 @@ func deleteOldLogs() {
 		return
 	}
 
-	cutoffTime := time.Now().AddDate(0, 0, -30) // 30 days ago
+	cutoffTime := time.Now().AddDate(0, 0, -7) // 1 week of logs
 
 	for _, file := range files {
 		info, err := file.Info()

@@ -4,11 +4,12 @@ import (
 	"image"
 	"image/draw"
 	"log"
-	"rpi-rgb-screen/constants"
+	"rpi-rgb-screen/config"
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/screen"
 	"rpi-rgb-screen/transition"
+	"rpi-rgb-screen/utils"
 
 	rgbmatrix "github.com/KyleMeasner/go-rpi-rgb-led-matrix"
 )
@@ -41,8 +42,10 @@ func (s *ScreenManager) Initialize() {
 		screenGroup.Initialize()
 	}
 
+	favoriteLeagues := utils.GetFavoriteLeagues(config.Config.FavoriteTeams)
+
 	// Upcoming games screens
-	for _, leagueId := range constants.LEAGUES {
+	for _, leagueId := range favoriteLeagues {
 		initFunction := func() []screen.Screen {
 			return s.initializeSportsLeagueUpcomingGames(leagueId)
 		}
@@ -51,7 +54,7 @@ func (s *ScreenManager) Initialize() {
 	}
 
 	// Past games screens
-	for _, leagueId := range constants.LEAGUES {
+	for _, leagueId := range favoriteLeagues {
 		initFunction := func() []screen.Screen {
 			return s.initializeSportsLeaguePastGames(leagueId)
 		}
@@ -78,9 +81,17 @@ func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []scre
 		return []screen.Screen{}
 	}
 
+	favoriteTeamsMap := map[int]bool{}
+	for _, teamId := range config.Config.FavoriteTeams {
+		favoriteTeamsMap[teamId] = true
+	}
+
 	screens := []screen.Screen{}
 	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
 	for _, event := range events {
+		if !favoriteTeamsMap[event.HomeTeamId] && !favoriteTeamsMap[event.AwayTeamId] {
+			continue
+		}
 		screens = append(screens, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
 	}
 	return screens
@@ -93,9 +104,17 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 		return []screen.Screen{}
 	}
 
+	favoriteTeamsMap := map[int]bool{}
+	for _, teamId := range config.Config.FavoriteTeams {
+		favoriteTeamsMap[teamId] = true
+	}
+
 	screens := []screen.Screen{}
 	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
 	for _, event := range events {
+		if !favoriteTeamsMap[event.HomeTeamId] && !favoriteTeamsMap[event.AwayTeamId] {
+			continue
+		}
 		screens = append(screens, screen.NewSportsScoresScreen(s.Fonts, s.DataManager.SportsData, event))
 	}
 	return screens

@@ -48,6 +48,8 @@ type NextEventSearchResponse struct {
 		Name         string `json:"strEvent"`
 		HomeTeamName string `json:"strHomeTeam"`
 		AwayTeamName string `json:"strAwayTeam"`
+		HomeTeamId   string `json:"idHomeTeam"`
+		AwayTeamId   string `json:"idAwayTeam"`
 		Timestamp    string `json:"strTimestamp"`
 	} `json:"events"`
 }
@@ -59,6 +61,8 @@ type LastEventSearchResponse struct {
 		Name         string `json:"strEvent"`
 		HomeTeamName string `json:"strHomeTeam"`
 		AwayTeamName string `json:"strAwayTeam"`
+		HomeTeamId   string `json:"idHomeTeam"`
+		AwayTeamId   string `json:"idAwayTeam"`
 		Timestamp    string `json:"strTimestamp"`
 		HomeScore    string `json:"intHomeScore"`
 		AwayScore    string `json:"intAwayScore"`
@@ -164,6 +168,16 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
 	}
+	homeTeamId, err := strconv.Atoi(rawEvent.HomeTeamId)
+	if err != nil {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	awayTeamId, err := strconv.Atoi(rawEvent.AwayTeamId)
+	if err != nil {
+		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
 	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -176,6 +190,8 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 		Name:         rawEvent.Name,
 		HomeTeamName: rawEvent.HomeTeamName,
 		AwayTeamName: rawEvent.AwayTeamName,
+		HomeTeamId:   homeTeamId,
+		AwayTeamId:   awayTeamId,
 		Time:         eventTime.Local(),
 	}
 }
@@ -204,6 +220,16 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
 	}
+	homeTeamId, err := strconv.Atoi(rawEvent.HomeTeamId)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
+	awayTeamId, err := strconv.Atoi(rawEvent.AwayTeamId)
+	if err != nil {
+		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
+		return nil
+	}
 	eventTime, err := time.Parse("2006-01-02T15:04:05", rawEvent.Timestamp)
 	if err != nil {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -226,6 +252,8 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 		Name:         rawEvent.Name,
 		HomeTeamName: rawEvent.HomeTeamName,
 		AwayTeamName: rawEvent.AwayTeamName,
+		HomeTeamId:   homeTeamId,
+		AwayTeamId:   awayTeamId,
 		Time:         eventTime.Local(),
 		HomeScore:    homeScore,
 		AwayScore:    awayScore,

@@ -28,6 +28,8 @@ type Event struct {
 	Name         string
 	HomeTeamName string
 	AwayTeamName string
+	HomeTeamId   int
+	AwayTeamId   int
 	Time         time.Time
 	HomeScore    int
 	AwayScore    int
