@@ -87,14 +87,17 @@ func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []scre
 	}
 
 	screens := []screen.Screen{}
-	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
 	for _, event := range events {
 		if !favoriteTeamsMap[event.HomeTeamId] && !favoriteTeamsMap[event.AwayTeamId] {
 			continue
 		}
 		screens = append(screens, screen.NewSportsUpcomingGamesScreen(s.Fonts, s.DataManager.SportsData, event))
 	}
-	return screens
+
+	if len(screens) > 0 {
+		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId)}, screens...)
+	}
+	return []screen.Screen{}
 }
 
 func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.Screen {
@@ -110,14 +113,17 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 	}
 
 	screens := []screen.Screen{}
-	screens = append(screens, screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId))
 	for _, event := range events {
 		if !favoriteTeamsMap[event.HomeTeamId] && !favoriteTeamsMap[event.AwayTeamId] {
 			continue
 		}
 		screens = append(screens, screen.NewSportsScoresScreen(s.Fonts, s.DataManager.SportsData, event))
 	}
-	return screens
+
+	if len(screens) > 0 {
+		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId)}, screens...)
+	}
+	return []screen.Screen{}
 }
 
 func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
