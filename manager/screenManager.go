@@ -98,7 +98,7 @@ func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []scre
 	}
 
 	if len(screens) > 0 {
-		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId)}, screens...)
+		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId, "UPCOMING GAMES")}, screens...)
 	}
 	return []screen.Screen{}
 }
@@ -124,7 +124,7 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 	}
 
 	if len(screens) > 0 {
-		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId)}, screens...)
+		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId, "LATEST SCORES")}, screens...)
 	}
 	return []screen.Screen{}
 }
