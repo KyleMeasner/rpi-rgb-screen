@@ -37,7 +37,9 @@ func (s *ScreenManager) Initialize() {
 		NewScreenGroup(s.initializeWeatherScreens),
 	}
 
-	// Initialize first two screen groups
+	numQuickLoadingScreens := len(s.ScreenGroups)
+
+	// Initialize the fast loading screen groups
 	for _, screenGroup := range s.ScreenGroups {
 		screenGroup.Initialize()
 	}
@@ -62,8 +64,9 @@ func (s *ScreenManager) Initialize() {
 		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
 	}
 
+	// Initialize the slow loading screen groups in the background
 	go func() {
-		for _, screenGroup := range s.ScreenGroups[2:] { // Skip the first two (clock and weather)
+		for _, screenGroup := range s.ScreenGroups[numQuickLoadingScreens:] {
 			screenGroup.Initialize()
 		}
 	}()

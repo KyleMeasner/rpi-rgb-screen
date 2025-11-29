@@ -19,10 +19,13 @@ type ZoomInTransition struct {
 }
 
 func NewZoomInTransition() Transition {
-	keyFrames := animation.NewKeyFrames(1000 * time.Millisecond)
+	keyFrames := animation.NewKeyFrames(1500 * time.Millisecond)
 
-	keyFrames.AddNumber("scale", 10)
-	keyFrames.AddNumberTransitions("scale", animation.AnimatedNumberTransition{Offset: 333, Duration: 667 * time.Millisecond, EndValue: 100})
+	keyFrames.AddNumber("scaleOldScreen", 100)
+	keyFrames.AddNumberTransitions("scaleOldScreen", animation.AnimatedNumberTransition{Offset: 0, Duration: 700 * time.Millisecond, EndValue: 0})
+
+	keyFrames.AddNumber("scaleNewScreen", 0)
+	keyFrames.AddNumberTransitions("scaleNewScreen", animation.AnimatedNumberTransition{Offset: 800 * time.Millisecond, Duration: 700 * time.Millisecond, EndValue: 100})
 
 	return &ZoomInTransition{
 		Ctx:       gg.NewContext(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT),
@@ -45,10 +48,17 @@ func (z *ZoomInTransition) Render() (image.Image, bool) {
 	z.Ctx.SetColor(color.Black)
 	z.Ctx.Clear()
 
-	renderedNewScreen, _ := z.NewScreen.Render()
+	scaleOldScreen := float64(z.KeyFrames.GetNumber("scaleOldScreen")) / 100
+	if scaleOldScreen > 0 {
+		renderedOldScreen, _ := z.OldScreen.Render()
+		z.Ctx.ScaleAbout(scaleOldScreen, scaleOldScreen, 32, 16)
+		z.Ctx.DrawImageAnchored(renderedOldScreen, 32, 16, 0.5, 0.5)
+		return z.Ctx.Image(), z.KeyFrames.HasEnded()
+	}
 
-	scale := float64(z.KeyFrames.GetNumber("scale")) / 100
-	z.Ctx.ScaleAbout(scale, scale, 32, 16)
+	scaleNewScreen := float64(z.KeyFrames.GetNumber("scaleNewScreen")) / 100
+	renderedNewScreen, _ := z.NewScreen.Render()
+	z.Ctx.ScaleAbout(scaleNewScreen, scaleNewScreen, 32, 16)
 	z.Ctx.DrawImageAnchored(renderedNewScreen, 32, 16, 0.5, 0.5)
 	return z.Ctx.Image(), z.KeyFrames.HasEnded()
 }
