@@ -27,12 +27,12 @@ type SportsLeagueScreen struct {
 }
 
 func NewSportsLeagueScreen(fonts *fonts.Fonts, sportsData sports.SportsData, leagueId int, message string) Screen {
-	keyFrames := animation.NewKeyFrames(10 * time.Second)
+	keyFrames := animation.NewKeyFrames(5 * time.Second)
 
 	messageWidth := 8 * len(message) // 8 pixels per character
 	keyFrames.AddPoint("message", image.Point{constants.SCREEN_WIDTH, constants.SCREEN_MIDDLE_Y})
 	keyFrames.AddPointTransitions("message",
-		animation.AnimatedPointTransition{Offset: 2000 * time.Millisecond, Duration: 6000 * time.Millisecond, EndValue: image.Point{-messageWidth, constants.SCREEN_MIDDLE_Y}},
+		animation.AnimatedPointTransition{Offset: 500 * time.Millisecond, Duration: 4000 * time.Millisecond, EndValue: image.Point{-messageWidth, constants.SCREEN_MIDDLE_Y}},
 	)
 
 	return &SportsLeagueScreen{
