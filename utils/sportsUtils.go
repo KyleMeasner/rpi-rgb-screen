@@ -20,3 +20,24 @@ func GetFavoriteLeagues(favoriteTeams []int) []int {
 	}
 	return leagues
 }
+
+func GetFavoriteTeamsInLeague(favoriteTeams []int, leagueId int) []int {
+	teamsInLeague := []int{}
+	leagueTeams, exists := constants.LEAGUE_TEAMS[leagueId]
+	if !exists {
+		return teamsInLeague
+	}
+
+	favoriteTeamsMap := map[int]bool{}
+	for _, teamId := range favoriteTeams {
+		favoriteTeamsMap[teamId] = true
+	}
+
+	for _, teamId := range leagueTeams {
+		if favoriteTeamsMap[teamId] {
+			teamsInLeague = append(teamsInLeague, teamId)
+		}
+	}
+
+	return teamsInLeague
+}

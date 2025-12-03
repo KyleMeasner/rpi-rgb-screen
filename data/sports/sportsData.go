@@ -2,6 +2,7 @@ package sports
 
 import (
 	"image"
+	"rpi-rgb-screen/config"
 	"rpi-rgb-screen/constants"
 	"rpi-rgb-screen/utils"
 	"slices"
@@ -36,8 +37,8 @@ type Event struct {
 }
 
 type SportsData interface {
-	GetUpcomingEventsForLeague(leagueId int) []*Event
-	GetPastEventsForLeague(leagueId int) []*Event
+	GetUpcomingEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event
+	GetPastEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event
 	GetLeague(leagueId int) *League
 	GetTeam(teamName string) *Team
 	GetLogo(teamName string) image.Image
@@ -63,14 +64,21 @@ func NewSportsData() SportsData {
 	}
 }
 
-func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
+// Fetches and caches upcoming events for the given league. If onlyCacheFavoriteTeams is true, only events involving favorite teams are cached.
+// All cached events are returned regardless of the onlyCacheFavoriteTeams flag.
+func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event {
 	if s.UpcomingEvents.Get(leagueId) == nil {
 		s.UpcomingEvents.Set(leagueId, map[int]*Event{})
 	}
 
+	teamIds := constants.LEAGUE_TEAMS[leagueId]
+	if onlyCacheFavoriteTeams {
+		teamIds = utils.GetFavoriteTeamsInLeague(config.Config.FavoriteTeams, leagueId)
+	}
+
 	events := *s.UpcomingEvents.Get(leagueId)
 	if len(events) == 0 {
-		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
+		for _, teamId := range teamIds {
 			nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
 			if nextGame != nil && time.Until(nextGame.Time) < time.Hour*24*7 { // Only include games within the next week
 				events[nextGame.Id] = nextGame
@@ -90,14 +98,21 @@ func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int) []*Event {
 	return eventsSlice
 }
 
-func (s *SportsDataManager) GetPastEventsForLeague(leagueId int) []*Event {
+// Fetches and caches past events for the given league. If onlyCacheFavoriteTeams is true, only events involving favorite teams are cached.
+// All cached events are returned regardless of the onlyCacheFavoriteTeams flag.
+func (s *SportsDataManager) GetPastEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event {
 	if s.PastEvents.Get(leagueId) == nil {
 		s.PastEvents.Set(leagueId, map[int]*Event{})
 	}
 
+	teamIds := constants.LEAGUE_TEAMS[leagueId]
+	if onlyCacheFavoriteTeams {
+		teamIds = utils.GetFavoriteTeamsInLeague(config.Config.FavoriteTeams, leagueId)
+	}
+
 	events := *s.PastEvents.Get(leagueId)
 	if len(events) == 0 {
-		for _, teamId := range constants.LEAGUE_TEAMS[leagueId] {
+		for _, teamId := range teamIds {
 			lastGame := s.TheSportsDbClient.GetLastGameForTeam(teamId)
 			if lastGame != nil && lastGame.LeagueId == leagueId && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
 				events[lastGame.Id] = lastGame

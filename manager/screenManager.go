@@ -79,7 +79,7 @@ func (s *ScreenManager) initializeClockScreen() []screen.Screen {
 
 func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []screen.Screen {
 	log.Printf("Initializing sports league %d upcoming games screen", leagueId)
-	events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId)
+	events := s.DataManager.SportsData.GetUpcomingEventsForLeague(leagueId, true)
 	if len(events) == 0 {
 		return []screen.Screen{}
 	}
@@ -105,7 +105,7 @@ func (s *ScreenManager) initializeSportsLeagueUpcomingGames(leagueId int) []scre
 
 func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.Screen {
 	log.Printf("Initializing sports league %d past games screen", leagueId)
-	events := s.DataManager.SportsData.GetPastEventsForLeague(leagueId)
+	events := s.DataManager.SportsData.GetPastEventsForLeague(leagueId, true)
 	if len(events) == 0 {
 		return []screen.Screen{}
 	}
