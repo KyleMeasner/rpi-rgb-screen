@@ -43,7 +43,11 @@ type WeatherDataManager struct {
 	Forecast         *utils.ExpirableMap[string, []*WeatherForecast]
 }
 
-func NewWeatherData() WeatherData {
+func NewWeatherData(useDummyData bool) WeatherData {
+	if useDummyData {
+		return &DummyWeatherDataManager{}
+	}
+
 	return &WeatherDataManager{
 		TomorrowIoClient: NewTomorrowIoClient(),
 		CurrentWeather:   utils.NewExpirableMap[string, *CurrentWeather](time.Minute * 15),

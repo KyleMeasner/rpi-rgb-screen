@@ -10,9 +10,9 @@ type DataManager struct {
 	WeatherData weather.WeatherData
 }
 
-func NewDataManager() *DataManager {
+func NewDataManager(useDummyData bool) *DataManager {
 	return &DataManager{
 		SportsData:  sports.NewSportsData(),
-		WeatherData: weather.NewWeatherData(),
+		WeatherData: weather.NewWeatherData(useDummyData),
 	}
 }
