@@ -10,6 +10,7 @@ type Configuration struct {
 	TomorrowIoApiKey string `json:"tomorrowIoApiKey"`
 	Location         string `json:"location"`
 	FavoriteTeams    []int  `json:"favoriteTeams"`
+	UseDummyData     bool   `json:"useDummyData"`
 }
 
 var Config *Configuration = &Configuration{}

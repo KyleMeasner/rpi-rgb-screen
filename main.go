@@ -59,7 +59,7 @@ func main() {
 	fontCache := fonts.LoadFonts()
 
 	// Initialize data and screen managers
-	dataManager := data.NewDataManager(false)
+	dataManager := data.NewDataManager(config.Config.UseDummyData)
 	screenManager := manager.NewScreenManager(fontCache, canvas, dataManager)
 	screenManager.Initialize()
 	screenManager.Run()
