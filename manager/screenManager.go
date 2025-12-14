@@ -131,10 +131,19 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 
 func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
 	log.Printf("Initializing weather screens")
-	return []screen.Screen{
+
+	screens := []screen.Screen{
 		screen.NewWeatherCurrentScreen(s.Fonts, s.DataManager.WeatherData),
-		screen.NewWeatherForecastScreen(s.Fonts, s.DataManager.WeatherData),
 	}
+
+	forecast := s.DataManager.WeatherData.GetForecast(config.Config.Location)
+	if len(forecast) > 0 {
+		for _, dayForecast := range forecast[1:] {
+			screens = append(screens, screen.NewWeatherForecastDayScreen(s.Fonts, dayForecast))
+		}
+	}
+
+	return screens
 }
 
 func (s *ScreenManager) Run() {
