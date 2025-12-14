@@ -119,18 +119,29 @@ func (s *WeatherForecastDayScreen) Render() (image.Image, bool) {
 		s.Ctx.DrawImageAnchored(s.WeatherIcon, 13, 22, 0.5, 0.5)
 	}
 
-	s.Ctx.SetColor(color.RGBA{0xAB, 0xAB, 0xAB, 255}) // #ABABAB
-	s.Ctx.DrawRectangle(33, 4, 28, 11)
-	s.Ctx.DrawRectangle(33, 17, 18, 11)
+	s.Ctx.SetColor(color.RGBA{0x87, 0x87, 0x87, 180}) // #878787
+	s.Ctx.DrawRectangle(33, 4, 28, 1)
+	s.Ctx.DrawRectangle(33, 14, 28, 1)
+	s.Ctx.DrawRectangle(33, 17, 18, 1)
+	s.Ctx.DrawRectangle(33, 27, 18, 1)
 	s.Ctx.Fill()
 
-	s.Ctx.SetColor(color.RGBA{0xE3, 0xE3, 0xE3, 255}) // #E3E3E3
-	s.Ctx.DrawRectangle(33, 5, 28, 9)
-	s.Ctx.DrawRectangle(33, 18, 18, 9)
+	s.Ctx.SetColor(color.RGBA{0xB0, 0xB0, 0xB0, 180}) // #B0B0B0
+	s.Ctx.DrawRectangle(33, 5, 28, 1)
+	s.Ctx.DrawRectangle(33, 13, 28, 1)
+	s.Ctx.DrawRectangle(33, 18, 18, 1)
+	s.Ctx.DrawRectangle(33, 26, 18, 1)
 	s.Ctx.Fill()
 
-	s.renderTemperature(s.WeatherForecast.TemperatureMax, image.Point{33, 4}, color.RGBA{0x57, 0x0D, 0x0D, 255}, s.KeyFrames.GetNumber("offsetTensHigh"), s.KeyFrames.GetNumber("offsetOnesHigh"), true)
-	s.renderTemperature(s.WeatherForecast.TemperatureMin, image.Point{33, 17}, color.RGBA{0x04, 0x1D, 0x56, 255}, s.KeyFrames.GetNumber("offsetTensLow"), s.KeyFrames.GetNumber("offsetOnesLow"), false)
+	s.Ctx.SetColor(color.RGBA{0xE3, 0xE3, 0xE3, 180}) // #E3E3E3
+	s.Ctx.DrawRectangle(33, 6, 28, 7)
+	s.Ctx.DrawRectangle(33, 19, 18, 7)
+	s.Ctx.Fill()
+
+	highTempColor := color.RGBA{0xA5, 0x29, 0x2A, 255} // #A5292A
+	lowTempColor := color.RGBA{0x22, 0x48, 0x7A, 255}  // #22487A
+	s.renderTemperature(s.WeatherForecast.TemperatureMax, image.Point{33, 4}, highTempColor, s.KeyFrames.GetNumber("offsetTensHigh"), s.KeyFrames.GetNumber("offsetOnesHigh"), true)
+	s.renderTemperature(s.WeatherForecast.TemperatureMin, image.Point{33, 17}, lowTempColor, s.KeyFrames.GetNumber("offsetTensLow"), s.KeyFrames.GetNumber("offsetOnesLow"), false)
 
 	return s.Ctx.Image(), s.KeyFrames.HasEnded()
 }
