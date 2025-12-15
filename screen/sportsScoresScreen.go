@@ -22,12 +22,12 @@ type SportsScoresScreen struct {
 	Fonts     *fonts.Fonts
 	KeyFrames *animation.KeyFrames
 	// Data
-	SportsData sports.SportsData
-	Event      *sports.Event
-	LogoHome   image.Image
-	LogoAway   image.Image
-	TeamHome   *sports.Team
-	TeamAway   *sports.Team
+	SportsData   sports.SportsData
+	Event        *sports.Event
+	LogoHome     image.Image
+	LogoAway     image.Image
+	HomeTeamName string
+	AwayTeamName string
 }
 
 func NewSportsScoresScreen(fonts *fonts.Fonts, sportsData sports.SportsData, event *sports.Event) Screen {
@@ -86,21 +86,17 @@ func (s *SportsScoresScreen) Refresh() chan bool {
 	doneChan := make(chan bool)
 
 	go func() {
-		if s.TeamHome == nil {
-			s.TeamHome = s.SportsData.GetTeam(s.Event.HomeTeamName)
-		}
-		if s.TeamAway == nil {
-			s.TeamAway = s.SportsData.GetTeam(s.Event.AwayTeamName)
-		}
+		s.HomeTeamName = s.SportsData.GetTeamShortName(s.Event.HomeTeamId)
+		s.AwayTeamName = s.SportsData.GetTeamShortName(s.Event.AwayTeamId)
 
-		if s.LogoHome == nil && s.TeamHome != nil {
-			logoHome := s.SportsData.GetLogo(s.TeamHome.LogoUrl)
+		if s.LogoHome == nil {
+			logoHome := s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
 			if logoHome != nil {
 				s.LogoHome = utils.ResizeImageSquare(logoHome, 32)
 			}
 		}
-		if s.LogoAway == nil && s.TeamAway != nil {
-			logoAway := s.SportsData.GetLogo(s.TeamAway.LogoUrl)
+		if s.LogoAway == nil {
+			logoAway := s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
 			if logoAway != nil {
 				s.LogoAway = utils.ResizeImageSquare(logoAway, 32)
 			}
@@ -153,14 +149,10 @@ func (s *SportsScoresScreen) renderText() {
 		s.Ctx.SetFontFace(s.Fonts.Size6x10)
 		s.Ctx.SetColor(scoreColor)
 
-		if s.TeamAway != nil {
-			s.Ctx.DrawStringAnchored(fmt.Sprintf("%s", s.TeamAway.ShortName), 17, -3, 0, 1)
-		}
+		s.Ctx.DrawStringAnchored(fmt.Sprintf("%s", s.AwayTeamName), 17, -3, 0, 1)
 		s.Ctx.DrawStringAnchored(fmt.Sprintf("%d", s.Event.AwayScore), 17, 5, 0, 1)
 
-		if s.TeamHome != nil {
-			s.Ctx.DrawStringAnchored(fmt.Sprintf("%s", s.TeamHome.ShortName), 47, 32, 1, 0)
-		}
+		s.Ctx.DrawStringAnchored(fmt.Sprintf("%s", s.HomeTeamName), 47, 32, 1, 0)
 		s.Ctx.DrawStringAnchored(fmt.Sprintf("%d", s.Event.HomeScore), 47, 24, 1, 0)
 	}
 }

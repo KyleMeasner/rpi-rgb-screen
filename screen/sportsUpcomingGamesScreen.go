@@ -21,12 +21,12 @@ type SportsUpcomingGamesScreen struct {
 	Fonts *fonts.Fonts
 
 	// Data
-	SportsData sports.SportsData
-	Event      *sports.Event
-	LogoHome   image.Image
-	LogoAway   image.Image
-	TeamHome   *sports.Team
-	TeamAway   *sports.Team
+	SportsData   sports.SportsData
+	Event        *sports.Event
+	LogoHome     image.Image
+	LogoAway     image.Image
+	HomeTeamName string
+	AwayTeamName string
 
 	// Animation state
 	KeyFrames *animation.KeyFrames
@@ -92,21 +92,17 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 	doneChan := make(chan bool)
 
 	go func() {
-		if s.TeamHome == nil {
-			s.TeamHome = s.SportsData.GetTeam(s.Event.HomeTeamName)
-		}
-		if s.TeamAway == nil {
-			s.TeamAway = s.SportsData.GetTeam(s.Event.AwayTeamName)
-		}
+		s.HomeTeamName = s.SportsData.GetTeamShortName(s.Event.HomeTeamId)
+		s.AwayTeamName = s.SportsData.GetTeamShortName(s.Event.AwayTeamId)
 
-		if s.LogoHome == nil && s.TeamHome != nil {
-			logoHome := s.SportsData.GetLogo(s.TeamHome.LogoUrl)
+		if s.LogoHome == nil {
+			logoHome := s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
 			if logoHome != nil {
 				s.LogoHome = utils.ResizeImageSquare(logoHome, 32)
 			}
 		}
-		if s.LogoAway == nil && s.TeamAway != nil {
-			logoAway := s.SportsData.GetLogo(s.TeamAway.LogoUrl)
+		if s.LogoAway == nil {
+			logoAway := s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
 			if logoAway != nil {
 				s.LogoAway = utils.ResizeImageSquare(logoAway, 32)
 			}
@@ -151,11 +147,11 @@ func (s *SportsUpcomingGamesScreen) renderLogos() {
 
 func (s *SportsUpcomingGamesScreen) renderText() {
 	teamNamesColor := s.KeyFrames.GetColor("teamNames")
-	if s.TeamHome != nil && s.TeamAway != nil && teamNamesColor.A > 0 {
+	if teamNamesColor.A > 0 {
 		s.Ctx.SetFontFace(s.Fonts.Size8x13B)
 		s.Ctx.SetColor(teamNamesColor)
-		s.Ctx.DrawStringAnchored(s.TeamAway.ShortName, 32, -3, 0.5, 1)
-		s.Ctx.DrawStringAnchored(s.TeamHome.ShortName, 32, 31, 0.5, 0)
+		s.Ctx.DrawStringAnchored(s.AwayTeamName, 32, -3, 0.5, 1)
+		s.Ctx.DrawStringAnchored(s.HomeTeamName, 32, 31, 0.5, 0)
 		s.Ctx.SetFontFace(s.Fonts.Size6x10)
 		s.Ctx.DrawStringAnchored("@", 32, 14, 0.5, 0.5)
 	}

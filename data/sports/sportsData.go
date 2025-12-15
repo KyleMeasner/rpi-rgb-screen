@@ -24,16 +24,18 @@ type Team struct {
 }
 
 type Event struct {
-	Id           int
-	LeagueId     int
-	Name         string
-	HomeTeamName string
-	AwayTeamName string
-	HomeTeamId   int
-	AwayTeamId   int
-	Time         time.Time
-	HomeScore    int
-	AwayScore    int
+	Id              int
+	LeagueId        int
+	Name            string
+	HomeTeamName    string
+	AwayTeamName    string
+	HomeTeamId      int
+	AwayTeamId      int
+	HomeTeamLogoUrl string
+	AwayTeamLogoUrl string
+	Time            time.Time
+	HomeScore       int
+	AwayScore       int
 }
 
 type SportsData interface {
@@ -41,7 +43,8 @@ type SportsData interface {
 	GetPastEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event
 	GetLeague(leagueId int) *League
 	GetTeam(teamName string) *Team
-	GetLogo(teamName string) image.Image
+	GetLogo(logoUrl string) image.Image
+	GetTeamShortName(teamId int) string
 }
 
 type SportsDataManager struct {
@@ -179,4 +182,12 @@ func (s *SportsDataManager) GetLogo(logoUrl string) image.Image {
 
 	s.Logos.Set(logoUrl, logo)
 	return logo
+}
+
+func (s *SportsDataManager) GetTeamShortName(teamId int) string {
+	if shortName, ok := constants.TEAM_SHORT_NAMES[teamId]; ok {
+		return shortName
+	}
+
+	return "???"
 }

@@ -17,10 +17,9 @@ import (
 // 30 requests per minute
 // https://www.thesportsdb.com/documentation#rate_limit
 
-const baseUrl = "https://www.thesportsdb.com/api/v1/json/123"
-
 type TheSportsDbClient struct {
 	RateLimiter *rate.Limiter
+	BaseUrl     string
 }
 
 type LeagueSearchResponse struct {
@@ -43,35 +42,40 @@ type TeamSearchResponse struct {
 
 type NextEventSearchResponse struct {
 	Events []struct {
-		Id           string `json:"idEvent"`
-		LeagueId     string `json:"idLeague"`
-		Name         string `json:"strEvent"`
-		HomeTeamName string `json:"strHomeTeam"`
-		AwayTeamName string `json:"strAwayTeam"`
-		HomeTeamId   string `json:"idHomeTeam"`
-		AwayTeamId   string `json:"idAwayTeam"`
-		Timestamp    string `json:"strTimestamp"`
+		Id               string `json:"idEvent"`
+		LeagueId         string `json:"idLeague"`
+		Name             string `json:"strEvent"`
+		HomeTeamName     string `json:"strHomeTeam"`
+		AwayTeamName     string `json:"strAwayTeam"`
+		HomeTeamId       string `json:"idHomeTeam"`
+		AwayTeamId       string `json:"idAwayTeam"`
+		HomeTeamBadgeUrl string `json:"strHomeTeamBadge"`
+		AwayTeamBadgeUrl string `json:"strAwayTeamBadge"`
+		Timestamp        string `json:"strTimestamp"`
 	} `json:"events"`
 }
 
 type LastEventSearchResponse struct {
 	Events []struct {
-		Id           string `json:"idEvent"`
-		LeagueId     string `json:"idLeague"`
-		Name         string `json:"strEvent"`
-		HomeTeamName string `json:"strHomeTeam"`
-		AwayTeamName string `json:"strAwayTeam"`
-		HomeTeamId   string `json:"idHomeTeam"`
-		AwayTeamId   string `json:"idAwayTeam"`
-		Timestamp    string `json:"strTimestamp"`
-		HomeScore    string `json:"intHomeScore"`
-		AwayScore    string `json:"intAwayScore"`
+		Id               string `json:"idEvent"`
+		LeagueId         string `json:"idLeague"`
+		Name             string `json:"strEvent"`
+		HomeTeamName     string `json:"strHomeTeam"`
+		AwayTeamName     string `json:"strAwayTeam"`
+		HomeTeamId       string `json:"idHomeTeam"`
+		AwayTeamId       string `json:"idAwayTeam"`
+		HomeTeamBadgeUrl string `json:"strHomeTeamBadge"`
+		AwayTeamBadgeUrl string `json:"strAwayTeamBadge"`
+		Timestamp        string `json:"strTimestamp"`
+		HomeScore        string `json:"intHomeScore"`
+		AwayScore        string `json:"intAwayScore"`
 	} `json:"results"`
 }
 
 func NewTheSportsDbClient() *TheSportsDbClient {
 	return &TheSportsDbClient{
 		RateLimiter: rate.NewLimiter(0.5, 1), // 30 requests per minute
+		BaseUrl:     "https://www.thesportsdb.com/api/v1/json/123",
 	}
 }
 
@@ -94,7 +98,7 @@ func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 
 func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 	var leagueSearchResponse LeagueSearchResponse
-	url := fmt.Sprintf("%s/lookupleague.php?id=%d", baseUrl, leagueId)
+	url := fmt.Sprintf("%s/lookupleague.php?id=%d", t.BaseUrl, leagueId)
 	err := utils.GetAndUnmarshal(url, &leagueSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("League fetch failed for league ID %d. Error: %s", leagueId, err)
@@ -117,7 +121,7 @@ func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 
 func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 	var teamSearchResponse TeamSearchResponse
-	url := fmt.Sprintf("%s/searchteams.php?t=%s", baseUrl, url.QueryEscape(teamName))
+	url := fmt.Sprintf("%s/searchteams.php?t=%s", t.BaseUrl, url.QueryEscape(teamName))
 	err := utils.GetAndUnmarshal(url, &teamSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
@@ -146,7 +150,7 @@ func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 
 func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	var nextEventSearchResponse NextEventSearchResponse
-	url := fmt.Sprintf("%s/eventsnext.php?id=%d", baseUrl, teamId)
+	url := fmt.Sprintf("%s/eventsnext.php?id=%d", t.BaseUrl, teamId)
 	err := utils.GetAndUnmarshal(url, &nextEventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -185,20 +189,22 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	}
 
 	return &Event{
-		Id:           eventId,
-		LeagueId:     leagueId,
-		Name:         rawEvent.Name,
-		HomeTeamName: rawEvent.HomeTeamName,
-		AwayTeamName: rawEvent.AwayTeamName,
-		HomeTeamId:   homeTeamId,
-		AwayTeamId:   awayTeamId,
-		Time:         eventTime.Local(),
+		Id:              eventId,
+		LeagueId:        leagueId,
+		Name:            rawEvent.Name,
+		HomeTeamName:    rawEvent.HomeTeamName,
+		AwayTeamName:    rawEvent.AwayTeamName,
+		HomeTeamId:      homeTeamId,
+		AwayTeamId:      awayTeamId,
+		HomeTeamLogoUrl: rawEvent.HomeTeamBadgeUrl,
+		AwayTeamLogoUrl: rawEvent.AwayTeamBadgeUrl,
+		Time:            eventTime.Local(),
 	}
 }
 
 func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 	var lastEventSearchResponse LastEventSearchResponse
-	url := fmt.Sprintf("%s/eventslast.php?id=%d", baseUrl, teamId)
+	url := fmt.Sprintf("%s/eventslast.php?id=%d", t.BaseUrl, teamId)
 	err := utils.GetAndUnmarshal(url, &lastEventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
@@ -247,15 +253,17 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 	}
 
 	return &Event{
-		Id:           eventId,
-		LeagueId:     leagueId,
-		Name:         rawEvent.Name,
-		HomeTeamName: rawEvent.HomeTeamName,
-		AwayTeamName: rawEvent.AwayTeamName,
-		HomeTeamId:   homeTeamId,
-		AwayTeamId:   awayTeamId,
-		Time:         eventTime.Local(),
-		HomeScore:    homeScore,
-		AwayScore:    awayScore,
+		Id:              eventId,
+		LeagueId:        leagueId,
+		Name:            rawEvent.Name,
+		HomeTeamName:    rawEvent.HomeTeamName,
+		AwayTeamName:    rawEvent.AwayTeamName,
+		HomeTeamId:      homeTeamId,
+		AwayTeamId:      awayTeamId,
+		HomeTeamLogoUrl: rawEvent.HomeTeamBadgeUrl,
+		AwayTeamLogoUrl: rawEvent.AwayTeamBadgeUrl,
+		Time:            eventTime.Local(),
+		HomeScore:       homeScore,
+		AwayScore:       awayScore,
 	}
 }
