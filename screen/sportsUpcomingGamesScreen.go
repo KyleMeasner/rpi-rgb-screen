@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"rpi-rgb-screen/animation"
@@ -96,13 +97,25 @@ func (s *SportsUpcomingGamesScreen) Refresh() chan bool {
 		s.AwayTeamName = s.SportsData.GetTeamShortName(s.Event.AwayTeamId)
 
 		if s.LogoHome == nil {
-			logoHome := s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
+			var logoHome image.Image
+			if s.Event.LeagueId == constants.LEAGUE_PWHL {
+				filePath := fmt.Sprintf("./resources/pwhlLogos/%d.png", s.Event.HomeTeamId)
+				logoHome, _ = utils.ReadImageFromFile(filePath)
+			} else {
+				logoHome = s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
+			}
 			if logoHome != nil {
 				s.LogoHome = utils.ResizeImageSquare(logoHome, 32)
 			}
 		}
 		if s.LogoAway == nil {
-			logoAway := s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
+			var logoAway image.Image
+			if s.Event.LeagueId == constants.LEAGUE_PWHL {
+				filePath := fmt.Sprintf("./resources/pwhlLogos/%d.png", s.Event.AwayTeamId)
+				logoAway, _ = utils.ReadImageFromFile(filePath)
+			} else {
+				logoAway = s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
+			}
 			if logoAway != nil {
 				s.LogoAway = utils.ResizeImageSquare(logoAway, 32)
 			}
@@ -162,7 +175,11 @@ func (s *SportsUpcomingGamesScreen) renderText() {
 		s.Ctx.SetColor(dateAndTimeColor)
 		s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Mon")), 32, 1, 0.5, 1)
 		s.Ctx.DrawStringAnchored(strings.ToUpper(s.Event.Time.Format("Jan 2")), 32, 8, 0.5, 1)
-		s.Ctx.DrawStringAnchored(s.Event.Time.Format("3:04"), 32, 15, 0.5, 1)
-		s.Ctx.DrawStringAnchored(s.Event.Time.Format("PM"), 32, 22, 0.5, 1)
+		if s.Event.IsTBD {
+			s.Ctx.DrawStringAnchored("TBD", 32, 18, 0.5, 1)
+		} else {
+			s.Ctx.DrawStringAnchored(s.Event.Time.Format("3:04"), 32, 15, 0.5, 1)
+			s.Ctx.DrawStringAnchored(s.Event.Time.Format("PM"), 32, 22, 0.5, 1)
+		}
 	}
 }

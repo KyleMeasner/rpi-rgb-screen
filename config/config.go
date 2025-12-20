@@ -8,6 +8,7 @@ import (
 
 type Configuration struct {
 	TomorrowIoApiKey string `json:"tomorrowIoApiKey"`
+	HockeyTechApiKey string `json:"hockeyTechApiKey"`
 	Location         string `json:"location"`
 	FavoriteTeams    []int  `json:"favoriteTeams"`
 	UseDummyData     bool   `json:"useDummyData"`

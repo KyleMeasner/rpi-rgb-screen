@@ -65,14 +65,19 @@ func (s *SportsLeagueScreen) Refresh() chan bool {
 	doneChan := make(chan bool)
 
 	go func() {
-		if s.League == nil {
-			s.League = s.SportsData.GetLeague(s.LeagueId)
-		}
+		if s.LeagueId == constants.LEAGUE_PWHL {
+			logo, _ := utils.ReadImageFromFile("./resources/pwhlLogos/league.png")
+			s.LeagueLogo = logo
+		} else {
+			if s.League == nil {
+				s.League = s.SportsData.GetLeague(s.LeagueId)
+			}
 
-		if s.LeagueLogo == nil && s.League != nil {
-			logo := s.SportsData.GetLogo(s.League.LogoUrl)
-			if logo != nil {
-				s.LeagueLogo = utils.ResizeImageSquare(logo, 32)
+			if s.LeagueLogo == nil && s.League != nil {
+				logo := s.SportsData.GetLogo(s.League.LogoUrl)
+				if logo != nil {
+					s.LeagueLogo = utils.ResizeImageSquare(logo, 32)
+				}
 			}
 		}
 

@@ -191,7 +191,6 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	return &Event{
 		Id:              eventId,
 		LeagueId:        leagueId,
-		Name:            rawEvent.Name,
 		HomeTeamName:    rawEvent.HomeTeamName,
 		AwayTeamName:    rawEvent.AwayTeamName,
 		HomeTeamId:      homeTeamId,
@@ -255,7 +254,6 @@ func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 	return &Event{
 		Id:              eventId,
 		LeagueId:        leagueId,
-		Name:            rawEvent.Name,
 		HomeTeamName:    rawEvent.HomeTeamName,
 		AwayTeamName:    rawEvent.AwayTeamName,
 		HomeTeamId:      homeTeamId,

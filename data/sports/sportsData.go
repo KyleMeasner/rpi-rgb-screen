@@ -26,7 +26,6 @@ type Team struct {
 type Event struct {
 	Id              int
 	LeagueId        int
-	Name            string
 	HomeTeamName    string
 	AwayTeamName    string
 	HomeTeamId      int
@@ -34,6 +33,7 @@ type Event struct {
 	HomeTeamLogoUrl string
 	AwayTeamLogoUrl string
 	Time            time.Time
+	IsTBD           bool
 	HomeScore       int
 	AwayScore       int
 }
@@ -49,6 +49,7 @@ type SportsData interface {
 
 type SportsDataManager struct {
 	TheSportsDbClient *TheSportsDbClient
+	HockeyTechClient  *HockeyTechClient
 	UpcomingEvents    *utils.ExpirableMap[int, map[int]*Event]
 	PastEvents        *utils.ExpirableMap[int, map[int]*Event]
 	Leagues           *utils.ExpirableMap[int, *League]
@@ -59,6 +60,7 @@ type SportsDataManager struct {
 func NewSportsData() SportsData {
 	return &SportsDataManager{
 		TheSportsDbClient: NewTheSportsDbClient(),
+		HockeyTechClient:  NewHockeyTechClient(),
 		UpcomingEvents:    utils.NewExpirableMap[int, map[int]*Event](time.Hour),
 		PastEvents:        utils.NewExpirableMap[int, map[int]*Event](time.Hour),
 		Leagues:           utils.NewExpirableMap[int, *League](time.Hour),
@@ -81,10 +83,15 @@ func (s *SportsDataManager) GetUpcomingEventsForLeague(leagueId int, onlyCacheFa
 
 	events := *s.UpcomingEvents.Get(leagueId)
 	if len(events) == 0 {
-		for _, teamId := range teamIds {
-			nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
-			if nextGame != nil && time.Until(nextGame.Time) < time.Hour*24*7 { // Only include games within the next week
-				events[nextGame.Id] = nextGame
+		if leagueId == constants.LEAGUE_PWHL {
+			s.getAllEventsForPWHL()
+			events = *s.UpcomingEvents.Get(leagueId)
+		} else {
+			for _, teamId := range teamIds {
+				nextGame := s.TheSportsDbClient.GetNextGameForTeam(teamId)
+				if nextGame != nil && time.Until(nextGame.Time) < time.Hour*24*7 { // Only include games within the next week
+					events[nextGame.Id] = nextGame
+				}
 			}
 		}
 	}
@@ -115,10 +122,15 @@ func (s *SportsDataManager) GetPastEventsForLeague(leagueId int, onlyCacheFavori
 
 	events := *s.PastEvents.Get(leagueId)
 	if len(events) == 0 {
-		for _, teamId := range teamIds {
-			lastGame := s.TheSportsDbClient.GetLastGameForTeam(teamId)
-			if lastGame != nil && lastGame.LeagueId == leagueId && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
-				events[lastGame.Id] = lastGame
+		if leagueId == constants.LEAGUE_PWHL {
+			s.getAllEventsForPWHL()
+			events = *s.UpcomingEvents.Get(leagueId)
+		} else {
+			for _, teamId := range teamIds {
+				lastGame := s.TheSportsDbClient.GetLastGameForTeam(teamId)
+				if lastGame != nil && lastGame.LeagueId == leagueId && time.Since(lastGame.Time) < time.Hour*24*7 { // Only include games within the last week
+					events[lastGame.Id] = lastGame
+				}
 			}
 		}
 	}
@@ -190,4 +202,24 @@ func (s *SportsDataManager) GetTeamShortName(teamId int) string {
 	}
 
 	return "???"
+}
+
+func (s *SportsDataManager) getAllEventsForPWHL() {
+	pastEvents, upcomingEvents := s.HockeyTechClient.GetLeagueSchedule()
+	pastEventsMap := map[int]*Event{}
+	upcomingEventsMap := map[int]*Event{}
+
+	for _, pastEvent := range pastEvents {
+		if time.Since(pastEvent.Time) < time.Hour*24*7 { // Only include games within the last week
+			pastEventsMap[pastEvent.Id] = pastEvent
+		}
+	}
+	for _, upcomingEvent := range upcomingEvents {
+		if time.Until(upcomingEvent.Time) < time.Hour*24*7 { // Only include games within the next week
+			upcomingEventsMap[upcomingEvent.Id] = upcomingEvent
+		}
+	}
+
+	s.PastEvents.Set(999, pastEventsMap)
+	s.UpcomingEvents.Set(999, upcomingEventsMap)
 }

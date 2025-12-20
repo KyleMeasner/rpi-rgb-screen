@@ -90,13 +90,25 @@ func (s *SportsScoresScreen) Refresh() chan bool {
 		s.AwayTeamName = s.SportsData.GetTeamShortName(s.Event.AwayTeamId)
 
 		if s.LogoHome == nil {
-			logoHome := s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
+			var logoHome image.Image
+			if s.Event.LeagueId == constants.LEAGUE_PWHL {
+				filePath := fmt.Sprintf("./resources/pwhlLogos/%d.png", s.Event.HomeTeamId)
+				logoHome, _ = utils.ReadImageFromFile(filePath)
+			} else {
+				logoHome = s.SportsData.GetLogo(s.Event.HomeTeamLogoUrl)
+			}
 			if logoHome != nil {
 				s.LogoHome = utils.ResizeImageSquare(logoHome, 32)
 			}
 		}
 		if s.LogoAway == nil {
-			logoAway := s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
+			var logoAway image.Image
+			if s.Event.LeagueId == constants.LEAGUE_PWHL {
+				filePath := fmt.Sprintf("./resources/pwhlLogos/%d.png", s.Event.AwayTeamId)
+				logoAway, _ = utils.ReadImageFromFile(filePath)
+			} else {
+				logoAway = s.SportsData.GetLogo(s.Event.AwayTeamLogoUrl)
+			}
 			if logoAway != nil {
 				s.LogoAway = utils.ResizeImageSquare(logoAway, 32)
 			}
