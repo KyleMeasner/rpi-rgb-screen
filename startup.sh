@@ -17,6 +17,9 @@ fi
 
 echo "Git pull completed successfully."
 
+echo "Clearing the build cache..."
+go clean -cache
+
 echo "Building the app..."
 go build -o rpi-rgb-screen main.go
 if [ $? -ne 0 ]; then
