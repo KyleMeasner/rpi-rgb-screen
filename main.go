@@ -10,6 +10,7 @@ import (
 	"rpi-rgb-screen/data"
 	"rpi-rgb-screen/fonts"
 	"rpi-rgb-screen/manager"
+	"slices"
 	"syscall"
 	"time"
 
@@ -76,6 +77,8 @@ func clearScreenOnExit(matrix rgbmatrix.Matrix) {
 	os.Exit(0)
 }
 
+// Keeps the number of log files at 5 or less. Leaves the most recent 4 log files,
+// leaving room for the soon to be created 5th log file. Deletes the rest.
 func deleteOldLogs() {
 	files, err := os.ReadDir("./logs")
 	if err != nil {
@@ -83,22 +86,22 @@ func deleteOldLogs() {
 		return
 	}
 
-	cutoffTime := time.Now().AddDate(0, 0, -7) // 1 week of logs
+	if len(files) < 5 {
+		return
+	}
 
-	for _, file := range files {
-		info, err := file.Info()
+	slices.SortFunc(files, func(a, b os.DirEntry) int {
+		aInfo, _ := a.Info()
+		bInfo, _ := b.Info()
+		return aInfo.ModTime().Compare(bInfo.ModTime())
+	})
+
+	for _, file := range files[0 : len(files)-4] {
+		err := os.Remove("./logs/" + file.Name())
 		if err != nil {
-			log.Printf("error getting file info for log file %s: %v", file.Name(), err)
-			continue
-		}
-
-		if info.ModTime().Before(cutoffTime) {
-			err := os.Remove("./logs/" + file.Name())
-			if err != nil {
-				log.Printf("error deleting old log file %s: %v", file.Name(), err)
-			} else {
-				log.Printf("deleted old log file: %s", file.Name())
-			}
+			log.Printf("error deleting old log file %s: %v", file.Name(), err)
+		} else {
+			log.Printf("deleted old log file: %s", file.Name())
 		}
 	}
 }
