@@ -51,7 +51,7 @@ func (h *HockeyTechClient) GetLogo(teamId int) image.Image {
 
 func (h *HockeyTechClient) GetLeagueSchedule() ([]*Event, []*Event) {
 	url := fmt.Sprintf("https://lscluster.hockeytech.com/feed/?feed=modulekit&view=schedule&key=%s&client_code=pwhl", config.Config.HockeyTechApiKey)
-	responseBody, err := utils.SendGetRequest(url, h.RateLimiter)
+	responseBody, err := utils.SendGetRequest(url, nil, h.RateLimiter)
 	if err != nil {
 		log.Printf("GetLeagueSchedule failed. Error: %s", err)
 		return nil, nil

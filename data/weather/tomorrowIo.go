@@ -88,7 +88,7 @@ func (t *TomorrowIoClient) GetCurrentWeather(location string) *CurrentWeather {
 	url := fmt.Sprintf("%s/weather/realtime?apikey=%s&units=metric&location=%s", baseUrl, config.Config.TomorrowIoApiKey, url.QueryEscape(location))
 
 	var realtimeWeatherResponse RealtimeWeatherResponse
-	err := utils.GetAndUnmarshal(url, &realtimeWeatherResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, nil, &realtimeWeatherResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Failed to get current weather for location '%s'. Error: %s", location, err)
 		return nil
@@ -115,7 +115,7 @@ func (t *TomorrowIoClient) GetHourlyWeather(location string) []*HourlyWeather {
 	}
 
 	var weatherTimelinesResponse WeatherTimelinesResponse
-	err := utils.PostAndUnmarshal(url, "application/json", requestPayload, &weatherTimelinesResponse, t.RateLimiter)
+	err := utils.PostAndUnmarshal(url, nil, "application/json", requestPayload, &weatherTimelinesResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Failed to get weather timeline for location '%s'. Error: %s", location, err)
 		return nil
@@ -156,7 +156,7 @@ func (t *TomorrowIoClient) GetForecast(location string) []*WeatherForecast {
 	}
 
 	var weatherTimelinesResponse WeatherTimelinesResponse
-	err := utils.PostAndUnmarshal(url, "application/json", requestPayload, &weatherTimelinesResponse, t.RateLimiter)
+	err := utils.PostAndUnmarshal(url, nil, "application/json", requestPayload, &weatherTimelinesResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Failed to get weather timeline for location '%s'. Error: %s", location, err)
 		return nil

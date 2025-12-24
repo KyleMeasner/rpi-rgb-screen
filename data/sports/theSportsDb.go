@@ -81,7 +81,7 @@ func NewTheSportsDbClient() *TheSportsDbClient {
 
 func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 	badgeUrl := logoUrl + "/tiny"
-	logoBytes, err := utils.SendGetRequest(badgeUrl, nil) // Not a rate limited API
+	logoBytes, err := utils.SendGetRequest(badgeUrl, nil, nil) // Not a rate limited API
 	if err != nil {
 		log.Printf("Logo fetch failed. Error: %s", err)
 		return nil
@@ -99,7 +99,7 @@ func (t *TheSportsDbClient) GetLogo(logoUrl string) image.Image {
 func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 	var leagueSearchResponse LeagueSearchResponse
 	url := fmt.Sprintf("%s/lookupleague.php?id=%d", t.BaseUrl, leagueId)
-	err := utils.GetAndUnmarshal(url, &leagueSearchResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, nil, &leagueSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("League fetch failed for league ID %d. Error: %s", leagueId, err)
 		return nil
@@ -122,7 +122,7 @@ func (t *TheSportsDbClient) GetLeague(leagueId int) *League {
 func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 	var teamSearchResponse TeamSearchResponse
 	url := fmt.Sprintf("%s/searchteams.php?t=%s", t.BaseUrl, url.QueryEscape(teamName))
-	err := utils.GetAndUnmarshal(url, &teamSearchResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, nil, &teamSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("Team fetch failed for team name %s. Error: %s", teamName, err)
 		return nil
@@ -151,7 +151,7 @@ func (t *TheSportsDbClient) GetTeam(teamName string) *Team {
 func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 	var nextEventSearchResponse NextEventSearchResponse
 	url := fmt.Sprintf("%s/eventsnext.php?id=%d", t.BaseUrl, teamId)
-	err := utils.GetAndUnmarshal(url, &nextEventSearchResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, nil, &nextEventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetNextGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil
@@ -204,7 +204,7 @@ func (t *TheSportsDbClient) GetNextGameForTeam(teamId int) *Event {
 func (t *TheSportsDbClient) GetLastGameForTeam(teamId int) *Event {
 	var lastEventSearchResponse LastEventSearchResponse
 	url := fmt.Sprintf("%s/eventslast.php?id=%d", t.BaseUrl, teamId)
-	err := utils.GetAndUnmarshal(url, &lastEventSearchResponse, t.RateLimiter)
+	err := utils.GetAndUnmarshal(url, nil, &lastEventSearchResponse, t.RateLimiter)
 	if err != nil {
 		log.Printf("GetLastGameForTeam failed. Team ID %d. Error: %s", teamId, err)
 		return nil

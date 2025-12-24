@@ -6,16 +6,25 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/time/rate"
 )
 
-func SendGetRequest(url string, rateLimiter *rate.Limiter) ([]byte, error) {
+func SendGetRequest(url string, headers map[string]string, rateLimiter *rate.Limiter) ([]byte, error) {
 	if rateLimiter != nil {
 		rateLimiter.Wait(context.Background())
 	}
 
-	response, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +32,8 @@ func SendGetRequest(url string, rateLimiter *rate.Limiter) ([]byte, error) {
 	return io.ReadAll(response.Body)
 }
 
-func GetAndUnmarshal(url string, responseObject any, rateLimiter *rate.Limiter) error {
-	responseBody, err := SendGetRequest(url, rateLimiter)
+func GetAndUnmarshal(url string, headers map[string]string, responseObject any, rateLimiter *rate.Limiter) error {
+	responseBody, err := SendGetRequest(url, headers, rateLimiter)
 	if err != nil {
 		return err
 	}
@@ -32,7 +41,7 @@ func GetAndUnmarshal(url string, responseObject any, rateLimiter *rate.Limiter) 
 	return json.Unmarshal(responseBody, responseObject)
 }
 
-func SendPostRequest(url string, contentType string, payload any, rateLimiter *rate.Limiter) ([]byte, error) {
+func SendPostRequest(url string, headers map[string]string, contentType string, payload any, rateLimiter *rate.Limiter) ([]byte, error) {
 	if rateLimiter != nil {
 		rateLimiter.Wait(context.Background())
 	}
@@ -42,7 +51,15 @@ func SendPostRequest(url string, contentType string, payload any, rateLimiter *r
 		return nil, err
 	}
 
-	response, err := http.Post(url, contentType, bytes.NewReader(jsonPayload))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonPayload))
+	if err != nil {
+		return nil, err
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +67,20 @@ func SendPostRequest(url string, contentType string, payload any, rateLimiter *r
 	return io.ReadAll(response.Body)
 }
 
-func PostAndUnmarshal(url string, contentType string, payload any, responseObject any, rateLimiter *rate.Limiter) error {
-	responseBody, err := SendPostRequest(url, contentType, payload, rateLimiter)
+func PostAndUnmarshal(url string, headers map[string]string, contentType string, payload any, responseObject any, rateLimiter *rate.Limiter) error {
+	responseBody, err := SendPostRequest(url, headers, contentType, payload, rateLimiter)
 	if err != nil {
 		return err
 	}
 
 	return json.Unmarshal(responseBody, responseObject)
+}
+
+// Returns 0 if conversion fails
+func StringToInt(str string) int {
+	result, err := strconv.Atoi(str)
+	if err != nil {
+		return 0
+	}
+	return result
 }

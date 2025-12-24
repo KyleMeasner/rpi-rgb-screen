@@ -38,6 +38,23 @@ type Event struct {
 	AwayScore       int
 }
 
+type Conference struct {
+	Name      string
+	Standings []*Standing
+}
+
+type Standing struct {
+	TeamId           int
+	Rank             int
+	GamesPlayed      int
+	Points           int
+	RegulationWins   int
+	RegulationLosses int
+	OvertimeWins     int
+	OvertimeLosses   int
+	Ties             int
+}
+
 type SportsData interface {
 	GetUpcomingEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event
 	GetPastEventsForLeague(leagueId int, onlyCacheFavoriteTeams bool) []*Event
@@ -48,24 +65,26 @@ type SportsData interface {
 }
 
 type SportsDataManager struct {
-	TheSportsDbClient *TheSportsDbClient
-	HockeyTechClient  *HockeyTechClient
-	UpcomingEvents    *utils.ExpirableMap[int, map[int]*Event]
-	PastEvents        *utils.ExpirableMap[int, map[int]*Event]
-	Leagues           *utils.ExpirableMap[int, *League]
-	Teams             *utils.ExpirableMap[string, *Team]
-	Logos             *utils.ExpirableMap[string, image.Image]
+	TheSportsDbClient   *TheSportsDbClient
+	HockeyTechClient    *HockeyTechClient
+	SportDbDotDevClient *SportDbDotDevClient
+	UpcomingEvents      *utils.ExpirableMap[int, map[int]*Event]
+	PastEvents          *utils.ExpirableMap[int, map[int]*Event]
+	Leagues             *utils.ExpirableMap[int, *League]
+	Teams               *utils.ExpirableMap[string, *Team]
+	Logos               *utils.ExpirableMap[string, image.Image]
 }
 
 func NewSportsData() SportsData {
 	return &SportsDataManager{
-		TheSportsDbClient: NewTheSportsDbClient(),
-		HockeyTechClient:  NewHockeyTechClient(),
-		UpcomingEvents:    utils.NewExpirableMap[int, map[int]*Event](time.Hour),
-		PastEvents:        utils.NewExpirableMap[int, map[int]*Event](time.Hour),
-		Leagues:           utils.NewExpirableMap[int, *League](time.Hour),
-		Teams:             utils.NewExpirableMap[string, *Team](time.Hour * 24),
-		Logos:             utils.NewExpirableMap[string, image.Image](time.Hour * 24),
+		TheSportsDbClient:   NewTheSportsDbClient(),
+		HockeyTechClient:    NewHockeyTechClient(),
+		SportDbDotDevClient: NewSportDbDotDevClient(),
+		UpcomingEvents:      utils.NewExpirableMap[int, map[int]*Event](time.Hour),
+		PastEvents:          utils.NewExpirableMap[int, map[int]*Event](time.Hour),
+		Leagues:             utils.NewExpirableMap[int, *League](time.Hour),
+		Teams:               utils.NewExpirableMap[string, *Team](time.Hour * 24),
+		Logos:               utils.NewExpirableMap[string, image.Image](time.Hour * 24),
 	}
 }
 
