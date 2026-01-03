@@ -75,7 +75,11 @@ type SportsDataManager struct {
 	Logos               *utils.ExpirableMap[string, image.Image]
 }
 
-func NewSportsData() SportsData {
+func NewSportsData(useDummyData bool) SportsData {
+	if useDummyData {
+		return NewDummySportsData()
+	}
+
 	return &SportsDataManager{
 		TheSportsDbClient:   NewTheSportsDbClient(),
 		HockeyTechClient:    NewHockeyTechClient(),

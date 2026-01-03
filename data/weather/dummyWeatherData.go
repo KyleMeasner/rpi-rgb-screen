@@ -4,6 +4,10 @@ import "time"
 
 type DummyWeatherDataManager struct{}
 
+func NewDummyWeatherDataManager() WeatherData {
+	return &DummyWeatherDataManager{}
+}
+
 func (d *DummyWeatherDataManager) GetCurrentWeather(location string) *CurrentWeather {
 	return &CurrentWeather{
 		Temperature:              9.7,

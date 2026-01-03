@@ -45,7 +45,7 @@ type WeatherDataManager struct {
 
 func NewWeatherData(useDummyData bool) WeatherData {
 	if useDummyData {
-		return &DummyWeatherDataManager{}
+		return NewDummyWeatherDataManager()
 	}
 
 	return &WeatherDataManager{

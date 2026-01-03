@@ -12,7 +12,7 @@ type DataManager struct {
 
 func NewDataManager(useDummyData bool) *DataManager {
 	return &DataManager{
-		SportsData:  sports.NewSportsData(),
+		SportsData:  sports.NewSportsData(useDummyData),
 		WeatherData: weather.NewWeatherData(useDummyData),
 	}
 }
