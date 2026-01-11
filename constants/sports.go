@@ -13,6 +13,17 @@ const LEAGUE_PWHL = 999 // PWHL data does not come from the same source. This ID
 
 var LEAGUES = []int{LEAGUE_CFL, LEAGUE_NHL, LEAGUE_NFL, LEAGUE_WNBA, LEAGUE_MLS, LEAGUE_NWSL, LEAGUE_MLB, LEAGUE_PWHL}
 
+var LEAGUE_NAMES = map[int]string{
+	LEAGUE_CFL:  "CFL",
+	LEAGUE_NHL:  "NHL",
+	LEAGUE_NFL:  "NFL",
+	LEAGUE_WNBA: "WNBA",
+	LEAGUE_MLS:  "MLS",
+	LEAGUE_NWSL: "NWSL",
+	LEAGUE_MLB:  "MLB",
+	LEAGUE_PWHL: "PWHL",
+}
+
 var LEAGUE_STANDINGS_SLUGS = map[int]string{
 	LEAGUE_CFL:  "american-football/canada:47/cfl:MZFZnvX4",
 	LEAGUE_NHL:  "hockey/usa:200/nhl:G2Op923t",

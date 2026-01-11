@@ -62,6 +62,7 @@ type SportsData interface {
 	GetTeam(teamName string) *Team
 	GetLogo(logoUrl string) image.Image
 	GetTeamShortName(teamId int) string
+	GetLeagueStandings(leagueId int) []*Conference
 }
 
 type SportsDataManager struct {
@@ -73,6 +74,7 @@ type SportsDataManager struct {
 	Leagues             *utils.ExpirableMap[int, *League]
 	Teams               *utils.ExpirableMap[string, *Team]
 	Logos               *utils.ExpirableMap[string, image.Image]
+	Standings           *utils.ExpirableMap[int, []*Conference]
 }
 
 func NewSportsData(useDummyData bool) SportsData {
@@ -89,6 +91,7 @@ func NewSportsData(useDummyData bool) SportsData {
 		Leagues:             utils.NewExpirableMap[int, *League](time.Hour),
 		Teams:               utils.NewExpirableMap[string, *Team](time.Hour * 24),
 		Logos:               utils.NewExpirableMap[string, image.Image](time.Hour * 24),
+		Standings:           utils.NewExpirableMap[int, []*Conference](time.Hour * 24),
 	}
 }
 
@@ -225,6 +228,26 @@ func (s *SportsDataManager) GetTeamShortName(teamId int) string {
 	}
 
 	return "???"
+}
+
+func (s *SportsDataManager) GetLeagueStandings(leagueId int) []*Conference {
+	cachedStandings := s.Standings.Get(leagueId)
+	if cachedStandings != nil {
+		return *cachedStandings
+	}
+
+	season := s.SportDbDotDevClient.GetLatestSeason(leagueId)
+	if season == "" {
+		return []*Conference{}
+	}
+
+	standings := s.SportDbDotDevClient.GetLeagueStandings(leagueId, season)
+	if len(standings) == 0 {
+		return []*Conference{}
+	}
+
+	s.Standings.Set(leagueId, standings)
+	return standings
 }
 
 func (s *SportsDataManager) getAllEventsForPWHL() {

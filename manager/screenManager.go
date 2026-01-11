@@ -64,6 +64,15 @@ func (s *ScreenManager) Initialize() {
 		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
 	}
 
+	// Standings screens
+	for _, leagueId := range favoriteLeagues {
+		initFunction := func() []screen.Screen {
+			return s.initializeSportsLeagueStandings(leagueId)
+		}
+		screenGroup := NewScreenGroup(initFunction)
+		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
+	}
+
 	// Initialize the slow loading screen groups in the background
 	go func() {
 		for _, screenGroup := range s.ScreenGroups[numQuickLoadingScreens:] {
@@ -125,6 +134,24 @@ func (s *ScreenManager) initializeSportsLeaguePastGames(leagueId int) []screen.S
 
 	if len(screens) > 0 {
 		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId, "LATEST SCORES")}, screens...)
+	}
+	return []screen.Screen{}
+}
+
+func (s *ScreenManager) initializeSportsLeagueStandings(leagueId int) []screen.Screen {
+	log.Printf("Initializing sports league %d standings screen", leagueId)
+	standings := s.DataManager.SportsData.GetLeagueStandings(leagueId)
+	if len(standings) == 0 {
+		return []screen.Screen{}
+	}
+
+	screens := []screen.Screen{}
+	for _, conference := range standings {
+		screens = append(screens, screen.NewSportsStandingsScreen(s.Fonts, s.DataManager.SportsData, leagueId, conference))
+	}
+
+	if len(screens) > 0 {
+		return append([]screen.Screen{screen.NewSportsLeagueScreen(s.Fonts, s.DataManager.SportsData, leagueId, "STANDINGS")}, screens...)
 	}
 	return []screen.Screen{}
 }
