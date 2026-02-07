@@ -64,14 +64,14 @@ func (s *ScreenManager) Initialize() {
 		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
 	}
 
-	// Standings screens
-	for _, leagueId := range favoriteLeagues {
-		initFunction := func() []screen.Screen {
-			return s.initializeSportsLeagueStandings(leagueId)
-		}
-		screenGroup := NewScreenGroup(initFunction)
-		s.ScreenGroups = append(s.ScreenGroups, screenGroup)
-	}
+	// Standings screens - This is disabled for now due to not having a free source of league standings.
+	// for _, leagueId := range favoriteLeagues {
+	// 	initFunction := func() []screen.Screen {
+	// 		return s.initializeSportsLeagueStandings(leagueId)
+	// 	}
+	// 	screenGroup := NewScreenGroup(initFunction)
+	// 	s.ScreenGroups = append(s.ScreenGroups, screenGroup)
+	// }
 
 	// Initialize the slow loading screen groups in the background
 	go func() {
