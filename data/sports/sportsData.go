@@ -261,11 +261,12 @@ func (s *SportsDataManager) getAllEventsForPWHL() {
 		}
 	}
 	for _, upcomingEvent := range upcomingEvents {
-		if time.Until(upcomingEvent.Time) < time.Hour*24*7 { // Only include games within the next week
+		timeDiff := time.Until(upcomingEvent.Time)
+		if timeDiff < time.Hour*24*7 && timeDiff > 0 { // Only include games within the next week and not in the past
 			upcomingEventsMap[upcomingEvent.Id] = upcomingEvent
 		}
 	}
 
-	s.PastEvents.Set(999, pastEventsMap)
-	s.UpcomingEvents.Set(999, upcomingEventsMap)
+	s.PastEvents.Set(constants.LEAGUE_PWHL, pastEventsMap)
+	s.UpcomingEvents.Set(constants.LEAGUE_PWHL, upcomingEventsMap)
 }
