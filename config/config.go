@@ -10,6 +10,7 @@ type Configuration struct {
 	TomorrowIoApiKey    string `json:"tomorrowIoApiKey"`
 	HockeyTechApiKey    string `json:"hockeyTechApiKey"`
 	SportDbDotDevApiKey string `json:"sportDbDotDevApiKey"`
+	OneBusAwayApiKey    string `json:"oneBusAwayApiKey"`
 	Location            string `json:"location"`
 	FavoriteTeams       []int  `json:"favoriteTeams"`
 	UseDummyData        bool   `json:"useDummyData"`
