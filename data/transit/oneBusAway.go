@@ -34,8 +34,8 @@ func NewOneBusAwayClient() *OneBusAwayClient {
 	}
 }
 
-func (c *OneBusAwayClient) GetStop(stopId string) *Stop {
-	response, err := c.OneBusAway.Stop.Get(context.Background(), stopId)
+func (o *OneBusAwayClient) GetStop(stopId string) *Stop {
+	response, err := o.OneBusAway.Stop.Get(context.Background(), stopId)
 	if err != nil {
 		log.Printf("Failed to get stop data for stop ID '%s'. Error: %s", stopId, err)
 		return nil
@@ -49,8 +49,8 @@ func (c *OneBusAwayClient) GetStop(stopId string) *Stop {
 	}
 }
 
-func (c *OneBusAwayClient) GetRoute(routeId string) *Route {
-	response, err := c.OneBusAway.Route.Get(context.Background(), routeId)
+func (o *OneBusAwayClient) GetRoute(routeId string) *Route {
+	response, err := o.OneBusAway.Route.Get(context.Background(), routeId)
 	if err != nil {
 		log.Printf("Failed to get route data for route ID '%s'. Error: %s", routeId, err)
 		return nil
@@ -71,11 +71,12 @@ func (c *OneBusAwayClient) GetRoute(routeId string) *Route {
 		Id:    route.ID,
 		Name:  route.ShortName,
 		Color: routeColor,
+		Type:  int(route.Type),
 	}
 }
 
-func (c *OneBusAwayClient) GetArrivalsForStop(stopId string) []*Arrival {
-	response, err := c.OneBusAway.ArrivalAndDeparture.List(context.Background(), stopId, onebusaway.ArrivalAndDepartureListParams{
+func (o *OneBusAwayClient) GetArrivalsForStop(stopId string) []*Arrival {
+	response, err := o.OneBusAway.ArrivalAndDeparture.List(context.Background(), stopId, onebusaway.ArrivalAndDepartureListParams{
 		MinutesBefore: onebusaway.Int(1),
 		MinutesAfter:  onebusaway.Int(35),
 	})
@@ -88,6 +89,7 @@ func (c *OneBusAwayClient) GetArrivalsForStop(stopId string) []*Arrival {
 	for _, arrival := range response.Data.Entry.ArrivalsAndDepartures {
 		arrival := &Arrival{
 			RouteName:     arrival.RouteShortName,
+			RouteId:       arrival.RouteID,
 			Headsign:      arrival.TripHeadsign,
 			PredictedTime: time.Unix(arrival.PredictedArrivalTime/1000, 0),
 			ScheduledTime: time.Unix(arrival.ScheduledArrivalTime/1000, 0),

@@ -35,6 +35,7 @@ func (s *ScreenManager) Initialize() {
 	s.ScreenGroups = []*ScreenGroup{
 		NewScreenGroup(s.initializeClockScreen),
 		NewScreenGroup(s.initializeWeatherScreens),
+		NewScreenGroup(s.initializeTransitScreens),
 	}
 
 	numQuickLoadingScreens := len(s.ScreenGroups)
@@ -170,6 +171,14 @@ func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
 		}
 	}
 
+	return screens
+}
+
+func (s *ScreenManager) initializeTransitScreens() []screen.Screen {
+	screens := []screen.Screen{}
+	for _, stopId := range config.Config.TransitStops {
+		screens = append(screens, screen.NewTransitStopScreen(s.Fonts, s.DataManager.TransitData, stopId))
+	}
 	return screens
 }
 

@@ -8,6 +8,7 @@ import (
 
 type Arrival struct {
 	RouteName     string
+	RouteId       string
 	Headsign      string
 	PredictedTime time.Time
 	ScheduledTime time.Time
@@ -23,6 +24,7 @@ type Route struct {
 	Id    string
 	Name  string
 	Color color.Color
+	Type  int
 }
 
 type TransitData interface {
