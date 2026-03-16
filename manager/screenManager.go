@@ -175,6 +175,8 @@ func (s *ScreenManager) initializeWeatherScreens() []screen.Screen {
 }
 
 func (s *ScreenManager) initializeTransitScreens() []screen.Screen {
+	log.Printf("Initializing transit screens")
+
 	screens := []screen.Screen{}
 	for _, stopId := range config.Config.TransitStops {
 		screens = append(screens, screen.NewTransitStopScreen(s.Fonts, s.DataManager.TransitData, stopId))

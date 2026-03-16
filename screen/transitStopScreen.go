@@ -70,6 +70,21 @@ func (s *TransitStopScreen) Refresh() chan bool {
 			}
 		}
 
+		// Update keyFrames for new list of arrivals
+		numPages := (len(s.Arrivals)-1)/2 + 1
+		keyFramesDuration := 5 * time.Second * time.Duration(numPages)
+
+		keyFrames := animation.NewKeyFrames(keyFramesDuration)
+		keyFrames.AddNumber("offset", 0)
+		for i := range numPages - 1 {
+			keyFrames.AddNumberTransitions("offset", animation.AnimatedNumberTransition{
+				Offset:   time.Duration(5*i) * time.Second,
+				Duration: 500 * time.Millisecond,
+				EndValue: -32 * i,
+			})
+		}
+		s.KeyFrames = keyFrames
+
 		close(doneChan)
 	}()
 
@@ -83,21 +98,19 @@ func (s *TransitStopScreen) Render() (image.Image, bool) {
 	s.Ctx.Clear()
 
 	// Draw arrivals
+	offset := s.KeyFrames.GetNumber("offset")
 	for i, arrival := range s.Arrivals {
-		s.renderArrival(arrival, float64(i*16))
-	}
-
-	// Draw "no arrivals" message if empty
-	if len(s.Arrivals) == 0 {
-		s.Ctx.SetFontFace(s.Fonts.Size4x6)
-		s.Ctx.SetColor(color.RGBA{200, 100, 100, 255})
-		s.Ctx.DrawStringAnchored("No arrivals", 32, 16, 0.5, 0.5)
+		s.renderArrival(arrival, float64(offset+i*16))
 	}
 
 	return s.Ctx.Image(), s.KeyFrames.HasEnded()
 }
 
 func (s *TransitStopScreen) renderArrival(arrival *transit.Arrival, offset float64) {
+	// Don't render if the arrival is off-screen
+	if offset <= -16 || offset >= 32 {
+		return
+	}
 
 	// Draw route number
 	s.Ctx.SetFontFace(s.Fonts.Size5x7)
