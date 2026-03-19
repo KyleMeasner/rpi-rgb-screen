@@ -133,11 +133,35 @@ func (s *TransitStopScreen) renderArrival(arrival *transit.Arrival, offset float
 	// Draw headsign (destination)
 	s.Ctx.SetColor(color.White)
 	s.Ctx.SetFontFace(s.Fonts.Size4x6)
-	headsignText := arrival.Headsign
-	if len(headsignText) > 12 {
-		headsignText = headsignText[:12] + "…"
+	firstLine := ""
+	secondLine := ""
+	for word := range strings.SplitSeq(arrival.Headsign, " ") {
+		if len(secondLine) >= 7 {
+			if len(strings.Trim(secondLine, " ")) > 7 {
+				secondLine = secondLine[:6] + "…"
+			}
+			break
+		}
+
+		if len(firstLine)+len(word) <= 13 {
+			firstLine += word + " "
+		} else {
+			if len(secondLine)+len(word) <= 7 {
+				secondLine += word + " "
+			} else {
+				if len(word) > 6 {
+					secondLine += word[:6-len(secondLine)] + "…"
+				} else {
+					secondLine += word[:len(word)-1] + "…"
+				}
+				break
+			}
+		}
 	}
-	s.Ctx.DrawStringAnchored(headsignText, 12, offset, 0, 1)
+	s.Ctx.DrawStringAnchored(firstLine, 12, offset, 0, 1)
+	if secondLine != "" {
+		s.Ctx.DrawStringAnchored(secondLine, 12, offset+6, 0, 1)
+	}
 
 	// Draw time until arrival
 	s.Ctx.SetFontFace(s.Fonts.Size5x7)
