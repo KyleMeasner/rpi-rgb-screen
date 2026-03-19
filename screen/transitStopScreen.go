@@ -17,14 +17,15 @@ import (
 )
 
 type TransitStopScreen struct {
-	State       ScreenState
-	Ctx         *gg.Context
-	KeyFrames   *animation.KeyFrames
-	Fonts       *fonts.Fonts
-	TransitData transit.TransitData
-	StopId      string
-	Arrivals    []*transit.Arrival
-	Routes      map[string]*transit.Route
+	State          ScreenState
+	Ctx            *gg.Context
+	KeyFrames      *animation.KeyFrames
+	Fonts          *fonts.Fonts
+	TransitData    transit.TransitData
+	StopId         string
+	Arrivals       []*transit.Arrival
+	Routes         map[string]*transit.Route
+	PredictionIcon image.Image
 }
 
 func NewTransitStopScreen(fonts *fonts.Fonts, transitData transit.TransitData, stopId string) Screen {
@@ -84,6 +85,9 @@ func (s *TransitStopScreen) Refresh() chan bool {
 			})
 		}
 		s.KeyFrames = keyFrames
+
+		icon, _ := utils.ReadImageFromFile("./resources/transitIcons/predicted.png")
+		s.PredictionIcon = icon
 
 		close(doneChan)
 	}()
@@ -154,8 +158,7 @@ func (s *TransitStopScreen) renderArrival(arrival *transit.Arrival, offset float
 	}
 	s.Ctx.DrawStringAnchored(timeText, 64, offset+7, 1, 1)
 
-	if isPredictedTime {
-		icon, _ := utils.ReadImageFromFile("./resources/transitIcons/predicted.png")
-		s.Ctx.DrawImageAnchored(icon, 62-(len(timeText)*5), int(offset+8), 1, 0)
+	if isPredictedTime && s.PredictionIcon != nil {
+		s.Ctx.DrawImageAnchored(s.PredictionIcon, 62-(len(timeText)*5), int(offset+8), 1, 0)
 	}
 }
