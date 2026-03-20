@@ -122,13 +122,13 @@ func (s *TransitStopScreen) renderArrival(arrival *transit.Arrival, offset float
 	s.Ctx.SetColor(route.Color)
 
 	if route.Type == 0 { // Train
-		s.Ctx.DrawCircle(5, offset+8, 5)
+		s.Ctx.DrawCircle(5, offset+7, 5)
 		s.Ctx.Fill()
 		s.Ctx.SetColor(color.White)
 	}
 
 	routeNumber := strings.SplitN(arrival.RouteName, " ", 2)[0]
-	s.Ctx.DrawStringAnchored(routeNumber, 6, offset+8, 0.5, 0.5)
+	s.Ctx.DrawStringAnchored(routeNumber, 6, offset+7, 0.5, 0.5)
 
 	// Draw headsign (destination)
 	s.Ctx.SetColor(color.White)
